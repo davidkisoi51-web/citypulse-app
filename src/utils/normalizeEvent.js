@@ -26,6 +26,6 @@ export function normalizeEvent(raw) {
     category: raw.classifications?.[0]?.segment?.name ?? null,
     priceMin: price?.min ?? null,
     priceMax: price?.max ?? null,
-    currency: price?.currency ?? 'USD',
+    currency: price?.currency ?? 'KES',
   }
 }

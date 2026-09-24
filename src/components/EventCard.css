@@ -29,13 +29,18 @@
 .event-card__media {
   position: relative;
   aspect-ratio: 16 / 9;
+  overflow: hidden;
   background: var(--code-bg);
 
+  /* Absolutely positioned so tall images can't stretch the frame; the card shows
+     a centered 16:9 slice of the image regardless of its original shape. */
   img {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    display: block;
+    object-position: center;
   }
 }
 
@@ -151,13 +156,4 @@
   50% {
     opacity: 0.5;
   }
-}
-
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
 }
