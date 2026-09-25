@@ -1,14 +1,29 @@
 import { formatDate, formatPrice } from '../utils/formatEvent'
 import './EventCard.css'
 
-function EventCard({ event }) {
+function EventCard({ event, onSelect }) {
   const { name, url, image, date, time, venue, city, category, priceMin, priceMax, currency } =
     event
   const price = formatPrice(priceMin, priceMax, currency)
   const location = [venue, city].filter(Boolean).join(', ')
 
+  const handleKeyDown = (e) => {
+    if (!onSelect) return
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      onSelect(event)
+    }
+  }
+
   return (
-    <article className="event-card">
+    <article
+      className="event-card"
+      onClick={onSelect ? () => onSelect(event) : undefined}
+      onKeyDown={onSelect ? handleKeyDown : undefined}
+      role={onSelect ? 'button' : undefined}
+      tabIndex={onSelect ? 0 : undefined}
+      aria-label={onSelect ? `View details for ${name}` : undefined}
+    >
       <div className="event-card__media">
         {image ? (
           <img src={image} alt="" loading="lazy" />
@@ -32,6 +47,7 @@ function EventCard({ event }) {
             href={url}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
           >
             Get tickets<span className="visually-hidden"> for {name}</span>
           </a>

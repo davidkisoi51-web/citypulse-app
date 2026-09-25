@@ -2,7 +2,7 @@ import EventCard from './EventCard'
 import { daysUntilLabel, formatPrice, whenPhrase } from '../utils/formatEvent'
 import './FeaturedBanner.css'
 
-function FeaturedBanner({ event }) {
+function FeaturedBanner({ event, onSelect }) {
   if (!event) return null
 
   const { name, url, image, date, priceMin, currency } = event
@@ -30,7 +30,7 @@ function FeaturedBanner({ event }) {
       </div>
 
       <div className="featured-banner__card">
-        <EventCard event={event} />
+        <EventCard event={event} onSelect={onSelect} />
       </div>
     </section>
   )
