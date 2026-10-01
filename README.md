@@ -91,6 +91,10 @@ CityPulse is a React (Vite) single-page app. It fetches events from the Ticketma
 
 If `package.json` or `package-lock.json` changed, run `npm install` again. A teammate may have added a package (for example `react-router-dom`), and the app won't build until it's installed on your machine.
 
+### After every `git pull`
+
+If `package.json` or `package-lock.json` changed, run `npm install` again. A teammate may have added a package (for example `react-router-dom`), and the app won't build until it's installed on your machine.
+
 ### Scripts
 
 | Command | What it does |
