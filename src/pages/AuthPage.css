@@ -12,15 +12,21 @@
 .auth__brand {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 19px;
+  gap: 12px;
+  font-size: 22px;
   font-weight: 700;
   color: var(--text-h);
   text-decoration: none;
 }
 
 .auth__logo {
-  color: var(--accent);
+  /* Round team logo (the source image is a circle on a square background). */
+  width: 120px;
+  height: 120px;
+  flex: none;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.35);
 }
 
 .auth__card {

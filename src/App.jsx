@@ -47,19 +47,14 @@ const { events: apiEvents, loading: apiLoading, fetchEvents } = useEvents()
     localStorage.setItem(query, query)
   }, [query])
 
-
-  useEffect(() => {
-    fetchEvents({})
-  }, [fetchEvents])
-
-  //highest price based on the priceMax values and lowest price based on the priceMin values
+    //highest price based on the priceMax values and lowest price based on the priceMin values
   const onPriceChanges = () => {
     setPrice(!price); if(!price){
-      mockEvents.sort((a,b) => {
+      apiEvents.sort((a,b) => {
       return new Number(a.priceMin) - new Number(b.priceMin)
     })}
     else {
-      mockEvents.sort((a,b) => {
+      apiEvents.sort((a,b) => {
         return new Number(b.priceMax) - new Number(a.priceMax)
       })
     }
@@ -67,28 +62,22 @@ const { events: apiEvents, loading: apiLoading, fetchEvents } = useEvents()
 
   const onDateChanges = () => {
     setDate(!date); if (!date) {
-      mockEvents.sort((a,b) => {
+      apiEvents.sort((a,b) => {
         return new Date(a.date) - 
         new Date(b.date)
       })}
       else {
-        mockEvents.sort((a,b) => {
+        apiEvents.sort((a,b) => {
         return new Date(b.date) - 
         new Date(a.date)
       })
     }
   }
 
-  //Temporary test
-  // useEffect(() => {
-  // fetchEvents({ city: 'New York', category: 'Music' })
-  // }, [])
 
-  // useEffect(() => {
-  // console.log('Events:', apiEvents)
-  // console.log('Error:', apiError)
-  // }, [apiEvents, apiError])
-
+  useEffect(() => {
+    fetchEvents({})
+  }, [fetchEvents])
 
   const handleOpenModal = (event) => {
     setSelectedEvent(event)
@@ -106,10 +95,6 @@ const { events: apiEvents, loading: apiLoading, fetchEvents } = useEvents()
 
   const categories = [...new Set(apiEvents.map((e) => e.category).filter(Boolean))].sort()
   const nextEvent = getNextEvent(apiEvents)
-  //const events = apiEvents.filter(
-   // (event) =>
-   //  matchesQuery(event, query) && (category === 'all' || event.category === category),
-   //)
   const clearFilters = () => {
     setCity('')
     setStartDate('')
@@ -118,7 +103,8 @@ const { events: apiEvents, loading: apiLoading, fetchEvents } = useEvents()
     setQuery('')
   }
 
-  const events = mockEvents.filter(
+  //EDIT: Changed from mockEvents to apiEvents to filter both sets of data
+  const events = apiEvents.filter(
     (event) => {
       const okq = matchesQuery(event, query)
       const okc = category === 'all' || event.category === category
@@ -141,16 +127,6 @@ const { events: apiEvents, loading: apiLoading, fetchEvents } = useEvents()
       return okq && okc && okCity&& okd
 })
 
-  //   // === ROLE 1: now derived from apiEvents instead of mockEvents directly ===
-  // // (mockEvents is still imported above — it's used internally as the
-  // // fallback inside eventsApi.js, not referenced here anymore.)
-  // const categories = [...new Set(apiEvents.map((e) => e.category).filter(Boolean))].sort()
-  // const nextEvent = getNextEvent(apiEvents)
-  // const events = apiEvents.filter(
-  //   (event) =>
-  //     matchesQuery(event, query) && (category === 'all' || event.category === category),
-  // )
-  // // === END ROLE 1 ===
 
   return (
     <>
