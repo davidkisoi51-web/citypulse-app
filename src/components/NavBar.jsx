@@ -3,7 +3,7 @@ import './NavBar.css'
 //nav_sorting added for sorting by date, time and price
 // date, recent to furthest,  time, time ranges, price, price ranges.
 // d_p_t is date, price and time\
-import { morning_events, afternoon_events, evening_events } from '../utils/eventTiming'
+//import { morning_events, afternoon_events, evening_events } from '../utils/eventTiming'
 
 
 function NavBar({ user, onLogin, onLogout, categories, category, onCategoryChange, nearest_furthest_date, onPriceChanges, morning, afternoon, evening }) {
@@ -62,8 +62,8 @@ function NavBar({ user, onLogin, onLogout, categories, category, onCategoryChang
       </div>
       
        <button value = "morning_events" onClick={morning} className='morning_btn'>Morning Events</button>
-        <button value = "afternoon_events" className='afternoon_href'>Afternoon Events</button>
-        <button value = "evening_events"className='evening_href'>Evening Event</button>
+        <button value = "afternoon_events" onClick={afternoon}className='afternoon_href'>Afternoon Events</button>
+        <button value = "evening_events"onClick={evening}className='evening_href'>Evening Event</button>
         //events need to be formatted
 
 
