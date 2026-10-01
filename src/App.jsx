@@ -43,17 +43,6 @@ const { events: apiEvents, loading: apiLoading, fetchEvents } = useEvents()
     fetchEvents({})
   }, [fetchEvents])
 
-  //Temporary test
-  // useEffect(() => {
-  // fetchEvents({ city: 'New York', category: 'Music' })
-  // }, [])
-
-  // useEffect(() => {
-  // console.log('Events:', apiEvents)
-  // console.log('Error:', apiError)
-  // }, [apiEvents, apiError])
-
-
   const handleOpenModal = (event) => {
     setSelectedEvent(event)
     setIsModalOpen(true)
@@ -70,10 +59,7 @@ const { events: apiEvents, loading: apiLoading, fetchEvents } = useEvents()
 
   const categories = [...new Set(apiEvents.map((e) => e.category).filter(Boolean))].sort()
   const nextEvent = getNextEvent(apiEvents)
-  //const events = apiEvents.filter(
-    //(event) =>
-     // matchesQuery(event, query) && (category === 'all' || event.category === category),
- // )
+
   const clearFilters = () => {
     setCity('')
     setStartDate('')
@@ -82,7 +68,8 @@ const { events: apiEvents, loading: apiLoading, fetchEvents } = useEvents()
     setQuery('')
   }
 
-  const events = mockEvents.filter(
+  //EDIT: Changed from mockEvents to apiEvents to filter both sets of data
+  const events = apiEvents.filter(
     (event) => {
       const okq = matchesQuery(event, query)
       const okc = category === 'all' || event.category === category
@@ -105,16 +92,6 @@ const { events: apiEvents, loading: apiLoading, fetchEvents } = useEvents()
       return okq && okc && okCity&& okd
 })
 
-  //   // === ROLE 1: now derived from apiEvents instead of mockEvents directly ===
-  // // (mockEvents is still imported above — it's used internally as the
-  // // fallback inside eventsApi.js, not referenced here anymore.)
-  // const categories = [...new Set(apiEvents.map((e) => e.category).filter(Boolean))].sort()
-  // const nextEvent = getNextEvent(apiEvents)
-  // const events = apiEvents.filter(
-  //   (event) =>
-  //     matchesQuery(event, query) && (category === 'all' || event.category === category),
-  // )
-  // // === END ROLE 1 ===
 
   return (
     <>

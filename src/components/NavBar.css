@@ -6,7 +6,7 @@
   align-items: center;
   gap: 16px;
   /* Full-bleed bar; side padding lines its content up with the 1126px main column. */
-  padding: 14px max(32px, calc((100% - 1126px) / 2 + 32px));
+  padding: 8px max(32px, calc((100% - 1126px) / 2 + 32px));
   /* Dark, slightly see-through bar so the maroon gradient shows behind it. */
   background: rgba(14, 4, 5, 0.7);
   backdrop-filter: blur(12px);
@@ -22,15 +22,21 @@
 .nav__brand {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 20px;
+  gap: 12px;
+  font-size: 22px;
   font-weight: 700;
   color: var(--text-h);
   text-decoration: none;
 }
 
 .nav__logo {
-  color: var(--accent);
+  /* Round team logo (the source image is a circle on a square background). */
+  width: 68px;
+  height: 68px;
+  flex: none;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.35);
 }
 
 .nav__filter {

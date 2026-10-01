@@ -10,7 +10,7 @@ function NavBar({ categories, category, onCategoryChange }) {
     <header className="nav">
 
       <Link className="nav__brand" to="/">
-        <span className="nav__logo" aria-hidden="true">●</span>
+        <img className="nav__logo" src="/group2-logo.jpg" alt="" width="68" height="68" />
         Group2
       </Link>
 
