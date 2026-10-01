@@ -71,13 +71,25 @@ CityPulse is a React (Vite) single-page app. It fetches events from the Ticketma
 3. **Add your API key:**
    ```bash
    cp .env.example .env
-   # then edit .env and set VITE_TICKETMASTER_API_KEY=<your key>
    ```
-   `.env` is git-ignored. Never commit a key. Note that `VITE_` variables are bundled into the browser build, so anyone using the site can read the key.
+   Then open `.env` (in the project root, next to `package.json`) and paste your key:
+   ```
+   VITE_TICKETMASTER_API_KEY=your_consumer_key
+   VITE_DEFAULT_CITY=Nairobi
+   ```
+   * Get the key at <https://developer.ticketmaster.com/> → **My Apps** → **Consumer Key**.
+   * `.env` is git-ignored, so it never comes down with `git clone`/`git pull`: every teammate creates their own. Never commit a key.
+   * Vite only reads `.env` at startup: **restart `npm run dev`** after creating or editing it.
+   * `VITE_` variables are bundled into the browser build, so anyone using the site can read the key.
+   * CI doesn't use your `.env`; it reads the repository secret `VITE_TICKETMASTER_API_KEY` (Settings → Secrets and variables → Actions).
 4. **Start the dev server:**
    ```bash
    npm run dev
    ```
+
+### After every `git pull`
+
+If `package.json` or `package-lock.json` changed, run `npm install` again. A teammate may have added a package (for example `react-router-dom`), and the app won't build until it's installed on your machine.
 
 ### Scripts
 
@@ -86,7 +98,7 @@ CityPulse is a React (Vite) single-page app. It fetches events from the Ticketma
 | `npm run dev` | Start the Vite dev server |
 | `npm run build` | Production build into `dist/` |
 | `npm run lint` | ESLint (CI fails on errors) |
-| `npm test` | Unit tests (API layer contract, date/price formatting, next-event logic) |
+| `npm test` | Unit tests (API layer contract, date/price formatting, next-event logic). *Not set up yet: there is no `test` script in `package.json`.* |
 | `npm run preview` | Serve the production build locally |
 
 ### Environment variables
@@ -95,6 +107,17 @@ CityPulse is a React (Vite) single-page app. It fetches events from the Ticketma
 | :--- | :--- | :--- |
 | `VITE_TICKETMASTER_API_KEY` | No | Ticketmaster key. Missing → sample events + notice. |
 | `VITE_DEFAULT_CITY` | No | Restrict live results to a city when the user hasn't chosen one. |
+
+### Troubleshooting
+
+| Symptom | Cause | Fix |
+| :--- | :--- | :--- |
+| `npm run build` / `npm run dev` fails with `failed to resolve import "react-router-dom"` (or any other package) | The package is listed in `package.json` but not installed locally | `npm install` |
+| `npm error enoent Could not read package.json` | You ran npm from the wrong folder (e.g. the parent `Project1/`) | `cd citypulse-app` first |
+| Browser console: `Ticketmaster fetch failed` / `401`, and a "Showing sample events" notice | No `.env`, empty key, or the dev server was started before `.env` existed (the key is sent as `undefined`) | Create `.env` as in step 3, then restart `npm run dev` |
+| `npm run lint` reports `'x' is assigned a value but never used` | Leftover variables | Remove them, or use them (e.g. pass `loading`/`error` from `useEvents()` to `EventGrid`) |
+| Cards show "Invalid Date", no price, or a dead "Get tickets" link on live data | An event object isn't in the shared shape (see **One event shape** below) | Pass API results through `utils/normalizeEvent.js` |
+| `git push origin citypulse-app` → `src refspec ... does not match any` | `citypulse-app` is the repo name, not a branch | `git push -u origin <your-branch-name>` |
 
 ---
 

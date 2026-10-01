@@ -9,3 +9,15 @@
     padding: 16px;
   }
 }
+
+/* Shown when live data fails and sample events are displayed instead. */
+.app__notice {
+  margin-bottom: 24px;
+  padding: 12px 16px;
+  border: 1px solid var(--accent-border);
+  border-radius: 8px;
+  font-size: 15px;
+  color: var(--text-h);
+  background: var(--accent-bg);
+  text-align: left;
+}

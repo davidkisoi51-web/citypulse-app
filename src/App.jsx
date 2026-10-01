@@ -40,46 +40,29 @@ function App() {
   const [price, setPrice] = useState(false)
   
   useEffect(() => {
-    localStorage.setItem('query', query)
-  }, [query])
-  
+    fetchEvents({})
+  }, [fetchEvents])
+
+  //Temporary test
+  // useEffect(() => {
+  // fetchEvents({ city: 'New York', category: 'Music' })
+  // }, [])
+
+  // useEffect(() => {
+  // console.log('Events:', apiEvents)
+  // console.log('Error:', apiError)
+  // }, [apiEvents, apiError])
 
 
-  //will complete
-    function mornings(){
-      
-    }
-    function afternoons(){}
-    function evenings(){}
+  const handleOpenModal = (event) => {
+    setSelectedEvent(event)
+    setIsModalOpen(true)
+  }
 
-
-    
-const toggle_nearest_furthest = () => {setDate(!date) ;if (!date) 
-  { mockEvents.sort((a,b) => {
-    return new Date(a.date) -
-        new Date(b.date)
-      })}
-    
-    else { mockEvents.sort((a,b) => {
-    return new Date(b.date) -
-        new Date(a.date)
-      })}
-}
-
-const price_changes = () => {setPrice(!price); if (!price){
-  //const low_price = mockEvents.filter((e) => e.priceMax)
-  mockEvents.sort((a,b) => {
-    return new Map(a.priceMax) - 
-    new Map(b.priceMin)})
-}
-  else {
-    mockEvents.sort((a,b) => {
-      return new Map(b.priceMax) - 
-      new Map(a.priceMin)})
-  }}
-
-  //nearest date has to be selected first for furthest date to show from the furthest instead of nearest.
-  
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setSelectedEvent(null)
+  }
 
   // NEW CHANGE: Replaced mockEvents with apiEvents to get the data from API
   // TODO: replace mockEvents with Ticketmaster results (map through normalizeEvent),
@@ -147,7 +130,12 @@ const price_changes = () => {setPrice(!price); if (!price){
           startDate={startDate} setStartDate={setStartDate} 
           endDate={endDate} setEndDate={setEndDate} filtered={events} clearFilters={clearFilters} />
         <FeaturedBanner event={nextEvent} onSelect={handleOpenModal}/>
-        <EventGrid events={events} onEventClick={handleOpenModal}/>
+        {apiError && (
+          <p className="app__notice" role="status">
+            {apiError}
+          </p>
+        )}
+        <EventGrid events={events} loading={apiLoading} onEventClick={handleOpenModal}/>
         
         {/* Pass onEventClick handler so Role 3 (EventGrid/Cards) can trigger your modal */}
       </main>

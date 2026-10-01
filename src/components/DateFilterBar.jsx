@@ -12,7 +12,7 @@ function DateFilterBar({ city, setCity, startDate, setStartDate, endDate, setEnd
     const openCalendar = (ref) => {
         try{
             ref.current?.showPicker()
-        } catch (e) {
+        } catch {
             ref.current?.focus()
             ref.current?.click()
         }
