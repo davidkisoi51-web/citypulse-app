@@ -1,0 +1,132 @@
+/* Promo copy on the left, the featured event's card on the right; stacks on phones. */
+.featured-banner {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr minmax(260px, 340px);
+  align-items: center;
+  gap: 32px;
+  margin-bottom: 32px;
+  padding: 40px;
+  border-radius: 16px;
+  overflow: hidden;
+  text-align: left;
+  color: #fff;
+  background: linear-gradient(135deg, #4c1d95, #7c3aed 55%, #db2777);
+
+  @media (max-width: 760px) {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding: 24px 20px;
+    margin-bottom: 24px;
+    border-radius: 12px;
+  }
+}
+
+/* Event photo as a faint, blurred texture behind the gradient. */
+.featured-banner__bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.25;
+  filter: blur(6px);
+  transform: scale(1.1);
+  mix-blend-mode: luminosity;
+}
+
+.featured-banner__promo,
+.featured-banner__card {
+  position: relative;
+  z-index: 1;
+}
+
+.featured-banner__promo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.featured-banner__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.featured-banner__pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fbbf24;
+  box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.7);
+  animation: banner-pulse 1.8s infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes banner-pulse {
+  70% {
+    box-shadow: 0 0 0 10px rgba(251, 191, 36, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(251, 191, 36, 0);
+  }
+}
+
+.featured-banner__title {
+  margin: 0;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.8px;
+  color: #fff;
+
+  @media (max-width: 760px) {
+    font-size: 28px;
+  }
+}
+
+.featured-banner__text {
+  max-width: 520px;
+  font-size: 17px;
+  color: rgba(255, 255, 255, 0.9);
+
+  strong {
+    color: #fff;
+  }
+}
+
+.featured-banner__cta {
+  margin-top: 6px;
+  padding: 12px 24px;
+  border-radius: 999px;
+  font-weight: 600;
+  color: #16171d;
+  background: #fbbf24;
+  text-decoration: none;
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: scale(1.04);
+  }
+  &:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.featured-banner__card .event-card {
+  border-color: transparent;
+  box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.45);
+}

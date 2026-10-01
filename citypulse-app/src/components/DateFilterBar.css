@@ -1,0 +1,110 @@
+.date-filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background-color: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  backdrop-filter: blur(12px);
+  flex-wrap: wrap;
+}
+.input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #1f1f2e;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    padding: 8px 12px;
+}
+.input-wrap.clickable {
+    cursor: pointer;
+    position: relative;
+    min-width: 140px;
+}
+.input-wrap.clickable input[type="date"] {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    cursor: pointer;
+}
+.cal-label {
+    color: #fff;
+    font-size: 14px;
+    pointer-events: none;
+}
+.input-wrap span {font-size: 14px;}
+
+.input-wrap input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #fff;
+    font-size: 14px;
+    width: 150px;
+}
+.date-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.date-filter-bar select, 
+.date-filter-bar input {
+    padding: 9px;
+    border-radius: 8px;
+    cursor: pointer;
+    outline: none;
+  margin-right: 10px;
+  font-weight: bold;
+}
+.date-right{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.count, .clear-button {
+    height: 36px;
+    padding: 0 18px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid rgba(96, 165, 250, 0.25);
+    transition: all 0.2s ease;
+    margin-bottom: 2px;
+}
+.count{
+    background: rgba(59, 130, 246, 0.15);
+    color: #93c5fd;
+    backdrop-filter: blur(6px);
+}
+.clear-button {
+    background:rgba(59, 130, 246, 0.25);
+    color: #bfdbfe;
+    cursor: pointer;
+    font-weight: bold;
+}
+.clear-button:hover {
+    background: #3b82f6;
+    color: white;
+    transform: translateY(-1px);
+}
+.clear-button:active {
+    transform: translateY(0);
+}
+@media (max-width: 640px) {
+    .date-filter-bar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .date-left, .date-right {
+        margin-bottom: 10px;
+    }
+}

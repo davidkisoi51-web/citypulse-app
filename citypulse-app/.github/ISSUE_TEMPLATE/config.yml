@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Capstone Execution Guide
+    url: https://github.com/davidkisoi51-web/citypulse/blob/develop/README.md
+    about: Please refer to the team execution guide for workflow and branching questions.
