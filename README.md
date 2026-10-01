@@ -145,3 +145,4 @@ Don't add a second shape: that mismatch has broken the UI twice. `npm test` incl
 * If `package-lock.json` conflicts in a merge, don't hand-edit it: take one side, run `npm install`, and commit the result.
 
 ## FOR PRACTICE 
+* hi
