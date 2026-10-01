@@ -20,11 +20,17 @@ function matchesQuery(event, query) {
 }
 
 function App() {
-  const [query, setQuery] = useState('')
+  const [query, setQuery] = useState(() => {
+    const search = localStorage.getItem("query");
+    //const value = JSON.parse(search);
+    return search || "";
+  })
   const [category, setCategory] = useState('all')
   const [city, setCity] = useState('')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
+  const [price, setPrice] = useState(false)
+  const [date, setDate] = useState(false)
 
 
   // Role 4: Event Detail Modal state management
@@ -37,10 +43,41 @@ function App() {
   // to mockEvents internally if the live call fails. App.jsx just renders
   // whatever comes back, without needing to know which source it was.
 const { events: apiEvents, loading: apiLoading, fetchEvents } = useEvents()
+  useEffect(() => {
+    localStorage.setItem(query, query)
+  }, [query])
+
 
   useEffect(() => {
     fetchEvents({})
   }, [fetchEvents])
+
+  //highest price based on the priceMax values and lowest price based on the priceMin values
+  const onPriceChanges = () => {
+    setPrice(!price); if(!price){
+      mockEvents.sort((a,b) => {
+      return new Number(a.priceMin) - new Number(b.priceMin)
+    })}
+    else {
+      mockEvents.sort((a,b) => {
+        return new Number(b.priceMax) - new Number(a.priceMax)
+      })
+    }
+  }
+
+  const onDateChanges = () => {
+    setDate(!date); if (!date) {
+      mockEvents.sort((a,b) => {
+        return new Date(a.date) - 
+        new Date(b.date)
+      })}
+      else {
+        mockEvents.sort((a,b) => {
+        return new Date(b.date) - 
+        new Date(a.date)
+      })
+    }
+  }
 
   //Temporary test
   // useEffect(() => {
@@ -70,9 +107,9 @@ const { events: apiEvents, loading: apiLoading, fetchEvents } = useEvents()
   const categories = [...new Set(apiEvents.map((e) => e.category).filter(Boolean))].sort()
   const nextEvent = getNextEvent(apiEvents)
   //const events = apiEvents.filter(
-    //(event) =>
-     // matchesQuery(event, query) && (category === 'all' || event.category === category),
- // )
+   // (event) =>
+   //  matchesQuery(event, query) && (category === 'all' || event.category === category),
+   //)
   const clearFilters = () => {
     setCity('')
     setStartDate('')
@@ -122,7 +159,7 @@ const { events: apiEvents, loading: apiLoading, fetchEvents } = useEvents()
         <h1 className="visually-hidden">Group2 events</h1>
         <section className="filters" aria-label="Filter events">
           <div className="filters__row">
-            <SearchBar value={query} onChange={setQuery} />
+            <SearchBar value={query} onChange={setQuery} onPriceChange={onPriceChanges} onDateChange={onDateChanges}/>
             <label htmlFor="category-filter" className="visually-hidden">
               Filter by category
             </label>

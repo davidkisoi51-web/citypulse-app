@@ -28,7 +28,7 @@
 .search-bar__icon {
   position: absolute;
   left: 16px;
-  top: 50%;
+  top:25%;
   width: 18px;
   height: 18px;
   transform: translateY(-50%);
@@ -38,3 +38,4 @@
   stroke-linecap: round;
   pointer-events: none;
 }
+
