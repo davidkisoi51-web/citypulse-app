@@ -14,12 +14,17 @@ function SkeletonCard() {
   )
 }
 
-function EventGrid({ events = [], loading = false, error = null, skeletonCount = 6, onEventClick }) {
+function EventGrid({ events = [], loading = false, error = null, skeletonCount = 6, onRetry, onEventClick }) {
   if (error) {
     return (
-      <p className="event-grid__status" role="alert">
-        Couldn't load events. {error}
-      </p>
+      <div className="event-grid__status" role="alert">
+        <p>Couldn't load events. {error}</p>
+        {onRetry && (
+          <button type="button" onClick={onRetry}>
+            Retry
+          </button>
+        )}
+      </div>
     )
   }
 
@@ -34,7 +39,7 @@ function EventGrid({ events = [], loading = false, error = null, skeletonCount =
   }
 
   if (!events.length) {
-    return <p className="event-grid__status">No events found. Try a different search.</p>
+    return <p className="event-grid__status">No events match the current filters.</p>
   }
 
   return (

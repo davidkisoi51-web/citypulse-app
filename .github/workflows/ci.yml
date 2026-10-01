@@ -1,15 +1,23 @@
-name: CI Build & Test Workflow
+name: CI
 
 on:
   push:
-    branches: [ main, dev ]
+    branches: [main, dev]
   pull_request:
-    branches: [ main, dev ]
+    branches: [main, dev]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  test-and-build:
-    name: Run Tests and Check Build
+  verify:
+    name: Lint, test, and build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout repository
@@ -18,13 +26,20 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: '.nvmrc'
           cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
-       
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
       - name: Build production bundle
         run: npm run build
         env:
           VITE_TICKETMASTER_API_KEY: ${{ secrets.VITE_TICKETMASTER_API_KEY }}
+          VITE_DEFAULT_CITY: ${{ vars.VITE_DEFAULT_CITY }}

@@ -81,3 +81,41 @@
   margin: 0 0 20px;
   text-align: left;
 }
+
+
+.app__data-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 20px;
+  padding: 12px 14px;
+  border: 1px solid var(--accent-border);
+  border-radius: 12px;
+  background: var(--accent-bg);
+  color: var(--text-h);
+  text-align: left;
+}
+
+.app__data-notice button,
+.event-grid__status button {
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: #fff;
+  background: var(--button-bg);
+  cursor: pointer;
+}
+
+.app__data-notice button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+@media (max-width: 640px) {
+  .app__data-notice {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
