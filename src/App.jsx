@@ -3,6 +3,7 @@ import EventGrid from './components/EventGrid'
 import FeaturedBanner from './components/FeaturedBanner'
 import NavBar from './components/NavBar'
 import SearchBar from './components/SearchBar'
+import Footer from './components/Footer'
 import EventDetailModal from './components/EventDetailModal'
 import { mockEvents } from './data/mockEvents'
 import { getNextEvent } from './utils/nextEvent'
@@ -161,6 +162,7 @@ const { events: apiEvents, loading: apiLoading, fetchEvents } = useEvents()
         <FeaturedBanner event={nextEvent} onSelect={handleOpenModal}/>
         <h2 className="app__section-title">Upcoming events</h2>
         <EventGrid events={events} loading={apiLoading} onEventClick={handleOpenModal}/>
+        <Footer />
         
         {/* Pass onEventClick handler so Role 3 (EventGrid/Cards) can trigger your modal */}
       </main>
