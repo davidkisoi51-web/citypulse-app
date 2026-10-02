@@ -34,6 +34,8 @@ function NavBar({ categories, category, onCategoryChange }) {
       </div>
       )}
 
+  
+
       <nav className="nav__profile" aria-label="Account">
         {user ? (
           <AccountMenu user={user} onLogout={logout} />

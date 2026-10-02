@@ -19,7 +19,7 @@
 
   font: 18px/145% var(--sans);
   letter-spacing: 0.18px;
-  color-scheme: dark;
+  color-scheme: light;
   color: var(--text);
   min-height: 100%;
   /* Near-black with maroon glows (top right, bottom left), fixed while scrolling. */
