@@ -20,17 +20,11 @@ function matchesQuery(event, query) {
 }
 
 function App() {
-  const [query, setQuery] = useState(() => {
-    const search = localStorage.getItem("query");
-    //const value = JSON.parse(search);
-    return search || "";
-  })
+  const [query, setQuery] = useState('')
   const [category, setCategory] = useState('all')
   const [city, setCity] = useState('')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
-  const [price, setPrice] = useState(false)
-  const [date, setDate] = useState(false)
 
 
   // Role 4: Event Detail Modal state management
@@ -42,38 +36,7 @@ function App() {
   // See src/services/eventsApi.js — tries Ticketmaster first, falls back
   // to mockEvents internally if the live call fails. App.jsx just renders
   // whatever comes back, without needing to know which source it was.
-const { events: apiEvents, loading: apiLoading, fetchEvents } = useEvents()
-  useEffect(() => {
-    localStorage.setItem(query, query)
-  }, [query])
-
-    //highest price based on the priceMax values and lowest price based on the priceMin values
-  const onPriceChanges = () => {
-    setPrice(!price); if(!price){
-      apiEvents.sort((a,b) => {
-      return new Number(a.priceMin) - new Number(b.priceMin)
-    })}
-    else {
-      apiEvents.sort((a,b) => {
-        return new Number(b.priceMax) - new Number(a.priceMax)
-      })
-    }
-  }
-
-  const onDateChanges = () => {
-    setDate(!date); if (!date) {
-      apiEvents.sort((a,b) => {
-        return new Date(a.date) - 
-        new Date(b.date)
-      })}
-      else {
-        apiEvents.sort((a,b) => {
-        return new Date(b.date) - 
-        new Date(a.date)
-      })
-    }
-  }
-
+const { events: apiEvents, loading: apiLoading, error: apiError, usedFallback, fetchEvents } = useEvents()
 
   useEffect(() => {
     const controller = new AbortController()
@@ -93,6 +56,7 @@ const { events: apiEvents, loading: apiLoading, fetchEvents } = useEvents()
 
   const categories = [...new Set(apiEvents.map((e) => e.category).filter(Boolean))].sort()
   const nextEvent = getNextEvent(apiEvents)
+
   const clearFilters = () => {
     setCity('')
     setStartDate('')
@@ -132,7 +96,7 @@ const { events: apiEvents, loading: apiLoading, fetchEvents } = useEvents()
         <h1 className="visually-hidden">Group2 events</h1>
         <section className="filters" aria-label="Filter events">
           <div className="filters__row">
-            <SearchBar value={query} onChange={setQuery} onPriceChange={onPriceChanges} onDateChange={onDateChanges}/>
+            <SearchBar value={query} onChange={setQuery} />
             <label htmlFor="category-filter" className="visually-hidden">
               Filter by category
             </label>
