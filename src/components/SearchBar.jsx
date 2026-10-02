@@ -1,6 +1,7 @@
 import './SearchBar.css'
 
-function SearchBar({ value, onChange, placeholder = 'Search events, venues or categories' }) {
+function SearchBar({ value, onChange, placeholder = 'Search events, venues or categories', onPriceChange, onDateChange }) {
+  
   return (
     <form className="search-bar" role="search" onSubmit={(e) => e.preventDefault()}>
       <label htmlFor="event-search" className="visually-hidden">
@@ -18,6 +19,30 @@ function SearchBar({ value, onChange, placeholder = 'Search events, venues or ca
         placeholder={placeholder}
         autoComplete="off"
       />
+      
+      <div className="price_date_sorting">
+        <label htmlFor="price-filter" className="visually-hidden">
+          Prices_Sorting
+        </label>
+        
+        <select
+          id="price-sort"
+          onChange={onPriceChange}
+        >
+          <option value="all">Sort By Price</option>
+          <option value="low_to_high">Lowest to Highest</option>
+          <option value="high_to_low">Highest to Lowest</option>
+        </select>
+
+        <select
+          id="date-sort"
+          onChange={onDateChange}
+        >
+          <option value="all">Sort By Date</option>
+          <option value="nearest_furthest">Nearest to Furthest</option>
+          <option value="furthest_nearest">Furthest to Nearest</option>
+        </select>
+        </div>
     </form>
   )
 }
