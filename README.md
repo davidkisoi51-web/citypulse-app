@@ -44,8 +44,8 @@ CityPulse is a React (Vite) single-page app. It fetches events from the Ticketma
 | **Stephen Njenga** | Role 1: API & Data Engineer | `services/eventsApi.js`, `utils/normalizeEvent.js`, Ticketmaster fetching | [@OTruce](https://github.com/OTruce) |
 | **Karimi Moreen** | Role 2: Search UI Lead | `SearchBar.jsx` (the category dropdown currently lives in `NavBar.jsx`) | [@Moreen-Mwirigi](https://github.com/Moreen-Mwirigi) |
 | **Heidi Temba** | Role 3: Event Grid Lead | `EventGrid.jsx` and `EventCard.jsx`, responsive layouts | [@1920heidi](https://github.com/1920heidi) |
-| **Amina Kavele** | Role 5: State & Local Storage Lead | Client state, browser-storage hook (planned) | [@wumeibomb](https://github.com/wumeibomb) |
-| **Kayte Njeri** | Role 6: UI Layout Lead | `NavBar.jsx` (done), `Footer.jsx` (planned) | [@KayteNjeri](https://github.com/KayteNjeri) |
+| **Amina Kavele** | Role 5: State & Local Storage Lead | Client state, browser-storage hook  | [@wumeibomb](https://github.com/wumeibomb) |
+| **Kayte Njeri** | Role 6: UI Layout Lead | `NavBar.jsx` , `Footer.jsx` | [@KayteNjeri](https://github.com/KayteNjeri) |
 
 ---
 
