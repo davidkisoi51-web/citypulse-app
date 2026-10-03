@@ -47,6 +47,7 @@ function EventCard({ event, onSelect }) {
             className="event-card__link"
             url={url}
             eventName={name}
+            event={event}
             onClick={(e) => e.stopPropagation()}
           >
             Get tickets<span className="visually-hidden"> for {name}</span>

@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import "./DateFilterBar.css";
-function DateFilterBar({ city, setCity, startDate, setStartDate, endDate, setEndDate, filtered, clearFilters, onClear }) {
+function DateFilterBar({ city, setCity, cities = [], startDate, setStartDate, endDate, setEndDate, filtered, clearFilters, onClear }) {
     const startRef = useRef(null)
     const endRef = useRef(null)
     
@@ -34,10 +34,14 @@ function DateFilterBar({ city, setCity, startDate, setStartDate, endDate, setEnd
                         <circle cx="12" cy="10" r="2.5" />
                     </svg>
                     <label htmlFor="location" className="visually-hidden">City</label>
-                    <input id="location"
-                    type="text"
-                    placeholder="City"
-                    value={city} onChange={(e) => setCity(e.target.value)} />
+                    <select id="location" value={city} onChange={(e) => setCity(e.target.value)}>
+                        <option value="">All cities</option>
+                        {cities.map((c) => (
+                            <option key={c} value={c}>
+                                {c}
+                            </option>
+                        ))}
+                    </select>
                 </div>
                 <div className="date-range">
                     <div className="input-wrap clickable" onClick={() => openCalendar(startRef)}>

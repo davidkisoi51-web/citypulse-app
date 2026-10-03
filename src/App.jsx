@@ -5,10 +5,10 @@ import NavBar from './components/NavBar'
 import SearchBar from './components/SearchBar'
 import Footer from './components/Footer'
 import EventDetailModal from './components/EventDetailModal'
-import { mockEvents } from './data/mockEvents'
 import { getNextEvent } from './utils/nextEvent'
 import { useEvents } from './utils/useEvents'
-import { useState, useEffect } from 'react'
+import { useAdminEvents } from './admin/adminEventsContext'
+import { useState, useEffect, useRef } from 'react'
 import './App.css'
 import DateFilterBar from './components/DateFilterBar'
 
@@ -44,6 +44,11 @@ function App() {
   // to mockEvents internally if the live call fails. App.jsx just renders
   // whatever comes back, without needing to know which source it was.
 const { events: apiEvents, loading: apiLoading, fetchEvents } = useEvents()
+  // Events added in the admin portal are listed first, ahead of the live/sample events.
+  const { events: adminEvents } = useAdminEvents()
+  // Skip API/sample events that are already in the admin list (same id), so nothing shows twice.
+  const adminIds = new Set(adminEvents.map((e) => e.id))
+  const allEvents = [...adminEvents, ...apiEvents.filter((e) => !adminIds.has(e.id))]
   useEffect(() => {
     localStorage.setItem(query, query)
   }, [query])
@@ -94,8 +99,11 @@ const { events: apiEvents, loading: apiLoading, fetchEvents } = useEvents()
   // TODO: replace mockEvents with Ticketmaster results (map through normalizeEvent),
   // passing `query` as the API keyword instead of filtering locally.
 
-  const categories = [...new Set(apiEvents.map((e) => e.category).filter(Boolean))].sort()
-  const nextEvent = getNextEvent(apiEvents)
+  const categories = [...new Set(allEvents.map((e) => e.category).filter(Boolean))].sort()
+  const cities = [...new Set(allEvents.map((e) => e.city).filter(Boolean))].sort()
+  const resultsRef = useRef(null)
+  // Banner: the team's own next upcoming event first; live events only if none of ours are upcoming.
+  const nextEvent = getNextEvent(adminEvents) ?? getNextEvent(allEvents)
   const clearFilters = () => {
     setCity('')
     setStartDate('')
@@ -105,7 +113,7 @@ const { events: apiEvents, loading: apiLoading, fetchEvents } = useEvents()
   }
 
   //EDIT: Changed from mockEvents to apiEvents to filter both sets of data
-  const events = apiEvents.filter(
+  const events = allEvents.filter(
     (event) => {
       const okq = matchesQuery(event, query)
       const okc = category === 'all' || event.category === category
@@ -136,13 +144,19 @@ const { events: apiEvents, loading: apiLoading, fetchEvents } = useEvents()
         <h1 className="visually-hidden">Group2 events</h1>
         <section className="filters" aria-label="Filter events">
           <div className="filters__row">
-            <SearchBar value={query} onChange={setQuery} onPriceChange={onPriceChanges} onDateChange={onDateChanges}/>
+            <SearchBar
+              value={query}
+              onChange={setQuery}
+              onSubmit={() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              onPriceChange={onPriceChanges}
+              onDateChange={onDateChanges}
+            />
             <label htmlFor="category-filter" className="visually-hidden">
               Filter by category
             </label>
             <select
               id="category-filter"
-              className="filters__select"
+              className="filters__select select-chevron"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
             >
@@ -153,19 +167,25 @@ const { events: apiEvents, loading: apiLoading, fetchEvents } = useEvents()
                 </option>
               ))}
             </select>
+            {/* Lives under the category dropdown but submits the search form (Enter works too). */}
+            <button type="submit" form="event-search-form" className="search-bar__submit filters__submit">
+              Search
+            </button>
           </div>
           <DateFilterBar
-            city={city} setCity={setCity}
+            city={city} setCity={setCity} cities={cities}
             startDate={startDate} setStartDate={setStartDate}
             endDate={endDate} setEndDate={setEndDate} filtered={events} clearFilters={clearFilters} />
         </section>
         <FeaturedBanner event={nextEvent} onSelect={handleOpenModal}/>
-        <h2 className="app__section-title">Upcoming events</h2>
+        <h2 className="app__section-title" ref={resultsRef}>Upcoming events</h2>
         <EventGrid events={events} loading={apiLoading} onEventClick={handleOpenModal}/>
-        <Footer />
-        
+
         {/* Pass onEventClick handler so Role 3 (EventGrid/Cards) can trigger your modal */}
       </main>
+
+      {/* Outside <main> so the footer spans the full page width. */}
+      <Footer />
 
       {/* Role 4 Drawer Component */}
 
