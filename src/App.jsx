@@ -56,11 +56,11 @@ const { events: apiEvents, loading: apiLoading, fetchEvents } = useEvents()
     //highest price based on the priceMax values and lowest price based on the priceMin values
   const onPriceChanges = () => {
     setPrice(!price); if(!price){
-      apiEvents.sort((a,b) => {
+      adminEvents.sort((a,b) => {
       return new Number(a.priceMin) - new Number(b.priceMin)
     })}
     else {
-      apiEvents.sort((a,b) => {
+      adminEvents.sort((a,b) => {
         return new Number(b.priceMax) - new Number(a.priceMax)
       })
     }
@@ -68,14 +68,12 @@ const { events: apiEvents, loading: apiLoading, fetchEvents } = useEvents()
 
   const onDateChanges = () => {
     setDate(!date); if (!date) {
-      apiEvents.sort((a,b) => {
-        return new Date(a.date) - 
-        new Date(b.date)
+      adminEvents.sort((a,b) => {
+        return new Date(a.date) - new Date(b.date)
       })}
       else {
-        apiEvents.sort((a,b) => {
-        return new Date(b.date) - 
-        new Date(a.date)
+        adminEvents.sort((a,b) => {
+        return new Date(b.date) - new Date(a.date)
       })
     }
   }
