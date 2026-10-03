@@ -147,3 +147,7 @@ Don't add a second shape: that mismatch has broken the UI twice. `npm test` incl
 * Branch from `dev`, open a pull request into `dev`; `main` only receives tested `dev` merges.
 * Before pushing: `npm run lint && npm test && npm run build`.
 * If `package-lock.json` conflicts in a merge, don't hand-edit it: take one side, run `npm install`, and commit the result.
+
+## Deployment
+
+* find the app deployed at:  https://citypulse-app.onrender.com/
