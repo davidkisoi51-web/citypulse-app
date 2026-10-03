@@ -25,7 +25,7 @@ function FeaturedBanner({ event, onSelect }) {
           Get your early bird ticket for <strong>{name}</strong>, coming {whenPhrase(date)}.
           {fromPrice && <> Tickets from {fromPrice} — while they last.</>}
         </p>
-        <TicketLink className="featured-banner__cta" url={url} eventName={name}>
+        <TicketLink className="featured-banner__cta" url={url} eventName={name} event={event}>
           Get early bird ticket<span className="visually-hidden"> for {name}</span>
         </TicketLink>
       </div>

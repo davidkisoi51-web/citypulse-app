@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 
 // Avatar + first name + chevron; opens a small menu with the account details and Log out.
 function AccountMenu({ user, onLogout }) {
@@ -55,6 +56,9 @@ function AccountMenu({ user, onLogout }) {
             <p className="account-menu__full-name">{user.name}</p>
             {user.email && <p className="account-menu__email">{user.email}</p>}
           </div>
+          <Link className="account-menu__item" to="/my-tickets" onClick={() => setOpen(false)}>
+            My tickets
+          </Link>
           <button
             type="button"
             className="account-menu__item"

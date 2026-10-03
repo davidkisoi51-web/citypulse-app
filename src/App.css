@@ -30,13 +30,38 @@
 }
 
 .filters__row {
-  display: flex;
+  /* Left: search box, then sort dropdowns. Right: category dropdown, then the Search button. */
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 200px;
   gap: 12px;
+  align-items: start;
 
   .search-bar {
-    flex: 1;
-    max-width: none;
-    margin: 0;
+    display: contents; /* lets its rows sit in this grid */
+  }
+
+  .search-bar__row {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .price_date_sorting {
+    grid-column: 1;
+    grid-row: 2;
+
+    select {
+      margin-top: 0;
+    }
+  }
+
+  .filters__select {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .filters__submit {
+    grid-column: 2;
+    grid-row: 2;
   }
 
   .search-bar input {
@@ -46,8 +71,17 @@
     border-radius: 10px;
   }
 
+  /* Phones: search box, category, Search button, then sorting. */
   @media (max-width: 640px) {
-    flex-direction: column;
+    grid-template-columns: 1fr;
+
+    .search-bar__row,
+    .filters__select,
+    .filters__submit,
+    .price_date_sorting {
+      grid-column: 1;
+      grid-row: auto;
+    }
   }
 }
 
@@ -58,7 +92,7 @@
   font: inherit;
   font-size: 15px;
   color: var(--text-h);
-  background: var(--bg);
+  background-color: var(--bg);
   border: 1px solid var(--border);
   border-radius: 10px;
   cursor: pointer;
@@ -79,5 +113,7 @@
 
 .app__section-title {
   margin: 0 0 20px;
+  /* Leave room for the sticky navbar when the Search button scrolls here. */
+  scroll-margin-top: 100px;
   text-align: left;
 }
