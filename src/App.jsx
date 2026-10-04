@@ -52,8 +52,8 @@ const { events: apiEvents, loading: apiLoading, fetchEvents } = useEvents()
   useEffect(() => {
     localStorage.setItem(query, query)
   }, [query])
-
-    //highest price based on the priceMax values and lowest price based on the priceMin values
+  
+    //highest price based on the priceMax values and lowest price based on the priceMin values 
   const onPriceChanges = () => {
     setPrice(!price); if(!price){
       adminEvents.sort((a,b) => {
