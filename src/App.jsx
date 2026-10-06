@@ -6,11 +6,29 @@ import SearchBar from './components/SearchBar'
 import Footer from './components/Footer'
 import EventDetailModal from './components/EventDetailModal'
 import { getNextEvent } from './utils/nextEvent'
+import { SORT_OPTIONS, sortEvents } from './utils/sortEvents'
 import { useEvents } from './utils/useEvents'
 import { useAdminEvents } from './admin/adminEventsContext'
 import { useState, useEffect, useRef } from 'react'
 import './App.css'
 import DateFilterBar from './components/DateFilterBar'
+
+// Case- and space-insensitive text, so "Music", "music " and "MUSIC" match each other.
+const norm = (value) => (value || '').trim().toLowerCase()
+
+// Unique values for a dropdown, merging ones that differ only in case/spacing.
+// Prefers a capitalised spelling ("Nairobi" over "nairobi") for display.
+function uniqueOptions(events, field) {
+  const byKey = new Map()
+  const isCapitalised = (v) => v[0] === v[0].toUpperCase()
+  for (const e of events) {
+    const value = e[field]?.trim()
+    if (!value) continue
+    const current = byKey.get(norm(value))
+    if (!current || (!isCapitalised(current) && isCapitalised(value))) byKey.set(norm(value), value)
+  }
+  return [...byKey.values()].sort((a, b) => a.localeCompare(b))
+}
 
 function matchesQuery(event, query) {
   const q = query.trim().toLowerCase()
@@ -30,8 +48,8 @@ function App() {
   const [city, setCity] = useState('')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
-  const [price, setPrice] = useState(false)
-  const [date, setDate] = useState(false)
+  // One sort at a time: 'all' (default order), a price sort, or a date sort.
+  const [sortBy, setSortBy] = useState(SORT_OPTIONS.none)
 
 
   // Role 4: Event Detail Modal state management
@@ -53,32 +71,6 @@ const { events: apiEvents, loading: apiLoading, fetchEvents } = useEvents()
     localStorage.setItem(query, query)
   }, [query])
   
-    //highest price based on the priceMax values and lowest price based on the priceMin values 
-  const onPriceChanges = () => {
-    setPrice(!price); if(!price){
-      adminEvents.sort((a,b) => {
-      return new Number(a.priceMin) - new Number(b.priceMin)
-    })}
-    else {
-      adminEvents.sort((a,b) => {
-        return new Number(b.priceMax) - new Number(a.priceMax)
-      })
-    }
-  }
-
-  const onDateChanges = () => {
-    setDate(!date); if (!date) {
-      adminEvents.sort((a,b) => {
-        return new Date(a.date) - new Date(b.date)
-      })}
-      else {
-        adminEvents.sort((a,b) => {
-        return new Date(b.date) - new Date(a.date)
-      })
-    }
-  }
-
-
   useEffect(() => {
     fetchEvents({})
   }, [fetchEvents])
@@ -97,8 +89,8 @@ const { events: apiEvents, loading: apiLoading, fetchEvents } = useEvents()
   // TODO: replace mockEvents with Ticketmaster results (map through normalizeEvent),
   // passing `query` as the API keyword instead of filtering locally.
 
-  const categories = [...new Set(allEvents.map((e) => e.category).filter(Boolean))].sort()
-  const cities = [...new Set(allEvents.map((e) => e.city).filter(Boolean))].sort()
+  const categories = uniqueOptions(allEvents, 'category')
+  const cities = uniqueOptions(allEvents, 'city')
   const resultsRef = useRef(null)
   // Banner: the team's own next upcoming event first; live events only if none of ours are upcoming.
   const nextEvent = getNextEvent(adminEvents) ?? getNextEvent(allEvents)
@@ -108,31 +100,24 @@ const { events: apiEvents, loading: apiLoading, fetchEvents } = useEvents()
     setEndDate('')
     setCategory('all')
     setQuery('')
+    setSortBy(SORT_OPTIONS.none)
   }
 
-  //EDIT: Changed from mockEvents to apiEvents to filter both sets of data
-  const events = allEvents.filter(
-    (event) => {
-      const okq = matchesQuery(event, query)
-      const okc = category === 'all' || event.category === category
-      const q = city.trim().toLowerCase()
-      const okCity = !q || (event.city || '').toLowerCase().includes(q)
-      let okd = true
-      try {
-        if (event.date && (startDate || endDate)) {
-          const d = new Date(event.date)
-          if (startDate) {
-            const start = new Date(startDate); start.setHours(0, 0, 0, 0);
-            if (d < start) okd = false;
-          }
-          if (endDate) {
-            const end = new Date(endDate); end.setHours(23, 59, 59, 999);
-            if (d > end) okd = false;
-          }
-        }
-      } catch { okd = true }
-      return okq && okc && okCity&& okd
-})
+  // Same filters for every event: admin-added, sample and live Ticketmaster ones.
+  const filtered = allEvents.filter((event) => {
+    if (!matchesQuery(event, query)) return false
+    if (category !== 'all' && norm(event.category) !== norm(category)) return false
+    if (city && norm(event.city) !== norm(city)) return false
+    // Dates are YYYY-MM-DD strings, so they compare correctly as text (no time-zone shifts).
+    if (startDate || endDate) {
+      if (!event.date) return false
+      if (startDate && event.date < startDate) return false
+      if (endDate && event.date > endDate) return false
+    }
+    return true
+  })
+  // Sorting applies to all filtered events; with no sort chosen, admin events stay first.
+  const events = sortEvents(filtered, sortBy)
 
 
   return (
@@ -146,8 +131,8 @@ const { events: apiEvents, loading: apiLoading, fetchEvents } = useEvents()
               value={query}
               onChange={setQuery}
               onSubmit={() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-              onPriceChange={onPriceChanges}
-              onDateChange={onDateChanges}
+              sortBy={sortBy}
+              onSortChange={setSortBy}
             />
             <label htmlFor="category-filter" className="visually-hidden">
               Filter by category
