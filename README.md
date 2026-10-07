@@ -143,11 +143,8 @@ Don't add a second shape: that mismatch has broken the UI twice. `npm test` incl
 * Before pushing: `npm run lint && npm test && npm run build`.
 * If `package-lock.json` conflicts in a merge, don't hand-edit it: take one side, run `npm install`, and commit the result.
 
-<<<<<<< HEAD
-## FOR PRACTICE 
-* hi
-=======
+
 ## Deployment
 
 * find the app deployed at:  https://citypulse-app.onrender.com/
->>>>>>> 6044580ba0233c6141ed56308e6312af3fe2e79b
+
