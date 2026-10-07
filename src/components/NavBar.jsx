@@ -1,5 +1,8 @@
-import { Link } from 'react-router-dom'
+import { Link, NavLink } from 'react-router-dom'
 import { useAuth } from '../auth/authContext'
+import { normalizeEmail } from '../auth/authUtils'
+import { isAdmin } from '../auth/admins'
+import { loadPurchases } from '../payment/purchases'
 import AccountMenu from './AccountMenu'
 import './NavBar.css'
 
@@ -34,9 +37,24 @@ function NavBar({ categories, category, onCategoryChange }) {
       </div>
       )}
 
+  
+
       <nav className="nav__profile" aria-label="Account">
         {user ? (
-          <AccountMenu user={user} onLogout={logout} />
+          <>
+            {isAdmin(user) && (
+              <NavLink to="/admin" className="nav__admin-link" title="Admin portal">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6z" />
+                  <path d="m9 12 2 2 4-4" />
+                </svg>
+                <span className="nav__admin-text">Admin</span>
+                <span className="visually-hidden"> portal</span>
+              </NavLink>
+            )}
+            <MyTicketsLink email={user.email} />
+            <AccountMenu user={user} onLogout={logout} />
+          </>
         ) : (
           <>
             <Link className="nav__button" to="/login">
@@ -49,6 +67,26 @@ function NavBar({ categories, category, onCategoryChange }) {
         )}
       </nav>
     </header>
+  )
+}
+
+// Clock (history) icon linking to the user's purchase history, with a count badge.
+function MyTicketsLink({ email }) {
+  const count = loadPurchases().filter((p) => normalizeEmail(p.buyerEmail) === normalizeEmail(email)).length
+  const label = count ? `My tickets (${count})` : 'My tickets'
+
+  return (
+    <NavLink to="/my-tickets" className="nav__icon-link" aria-label={label} title="My tickets">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 7v5l3 2" />
+      </svg>
+      {count > 0 && (
+        <span className="nav__badge" aria-hidden="true">
+          {count > 99 ? '99+' : count}
+        </span>
+      )}
+    </NavLink>
   )
 }
 

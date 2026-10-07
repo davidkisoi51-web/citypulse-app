@@ -65,8 +65,9 @@
   stroke-linejoin: round;
 }
 
-.input-wrap input[type='text'] {
-  width: 140px;
+.input-wrap input[type='text'],
+.input-wrap select {
+  width: 160px;
   padding: 0;
   font: inherit;
   font-size: 15px;
@@ -135,7 +136,8 @@
   }
 
   .date-left > .input-wrap,
-  .input-wrap input[type='text'] {
+  .input-wrap input[type='text'],
+  .input-wrap select {
     flex: 1;
     width: auto;
   }

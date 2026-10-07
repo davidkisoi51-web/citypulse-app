@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { formatDate, formatPrice } from '../utils/formatEvent';
 import TicketLink from './TicketLink';
+import { paysOnSite } from '../payment/paymentUtils';
 import './EventDetailModal.css';
 
 const FOCUSABLE_SELECTOR =
@@ -122,9 +123,9 @@ export default function EventDetailModal({ isOpen, onClose, event }) {
         </div>
 
         <footer className="drawer-footer">
-          {url ? (
-            <TicketLink url={url} eventName={name} className="ticket-btn">
-              Get Tickets ↗
+          {url || paysOnSite(event) ? (
+            <TicketLink url={url} eventName={name} event={event} className="ticket-btn">
+              {url ? 'Get Tickets ↗' : 'Get Tickets'}
             </TicketLink>
           ) : (
             <button className="ticket-btn disabled" disabled>

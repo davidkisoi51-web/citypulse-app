@@ -10,17 +10,16 @@
 CityPulse is a React (Vite) single-page app. It fetches events from the Ticketmaster Discovery API and falls back to built-in sample events (with an on-screen notice) when the API is unreachable or no API key is configured. GitHub Actions lints, tests and builds every push and pull request.
 
 ### What works today
-* **Search and category filter:** typing (debounced) and picking a category both query the Ticketmaster API, so results are not limited to the first page loaded.
+* **Search and category filter:** typing (debounced) and picking a category both query the Ticketmaster API, so results are not limited to the first page loaded. City and date range filters added as well.
 * **Event grid:** responsive cards with poster, date/time, venue, price and a ticket link; loading skeletons while fetching.
 * **Featured banner:** highlights the soonest upcoming event.
 * **Event details drawer:** poster, date, price, venue with a Google Maps link and a ticket button; keyboard accessible (focus trap, Esc to close).
 * **Sample-event fallback:** if the live call fails, sample events are shown with a notice that explains why.
 * **CI:** lint, unit tests and production build on every push/PR to `main` and `dev`.
+* **Local Storage persistence:** Included localStorage using useEffect and can be accessed through 'Application' on the browser devtools.
+* **Footer component:** Added footer component with 'About Us', 'Privacy Policy', 'Contact Us', 'Terms' and 'Cookies' sections for user to access.
 
 ### Planned (not built yet)
-* Date-range and city filters in the UI (the API layer already accepts `city`, `startDate`, `endDate`).
-* Search-history persistence in local storage (Role 5).
-* Footer component (Role 6).
 * Real login (the "Log in" button is a demo stub).
 * Flask + PostgreSQL backend (would also let us keep the API key off the browser).
 
@@ -44,8 +43,8 @@ CityPulse is a React (Vite) single-page app. It fetches events from the Ticketma
 | **Stephen Njenga** | Role 1: API & Data Engineer | `services/eventsApi.js`, `utils/normalizeEvent.js`, Ticketmaster fetching | [@OTruce](https://github.com/OTruce) |
 | **Karimi Moreen** | Role 2: Search UI Lead | `SearchBar.jsx` (the category dropdown currently lives in `NavBar.jsx`) | [@Moreen-Mwirigi](https://github.com/Moreen-Mwirigi) |
 | **Heidi Temba** | Role 3: Event Grid Lead | `EventGrid.jsx` and `EventCard.jsx`, responsive layouts | [@1920heidi](https://github.com/1920heidi) |
-| **Amina Kavele** | Role 5: State & Local Storage Lead | Client state, browser-storage hook (planned) | [@wumeibomb](https://github.com/wumeibomb) |
-| **Kayte Njeri** | Role 6: UI Layout Lead | `NavBar.jsx` (done), `Footer.jsx` (planned) | [@KayteNjeri](https://github.com/KayteNjeri) |
+| **Amina Kavele** | Role 5: State & Local Storage Lead | Client state, browser-storage hook  | [@wumeibomb](https://github.com/wumeibomb) |
+| **Kayte Njeri** | Role 6: UI Layout Lead | `NavBar.jsx` , `Footer.jsx` | [@KayteNjeri](https://github.com/KayteNjeri) |
 
 ---
 
@@ -144,5 +143,11 @@ Don't add a second shape: that mismatch has broken the UI twice. `npm test` incl
 * Before pushing: `npm run lint && npm test && npm run build`.
 * If `package-lock.json` conflicts in a merge, don't hand-edit it: take one side, run `npm install`, and commit the result.
 
+<<<<<<< HEAD
 ## FOR PRACTICE 
 * hi
+=======
+## Deployment
+
+* find the app deployed at:  https://citypulse-app.onrender.com/
+>>>>>>> 6044580ba0233c6141ed56308e6312af3fe2e79b
