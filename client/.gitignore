@@ -1,6 +1,3 @@
-
-Original file line number	Diff line number	Diff line change
-@@ -1,25 +1,7 @@
 # Logs
 logs
 *.log
@@ -26,10 +23,3 @@ dist-ssr
 *.sln
 *.sw?
 *.env
-server/.env
-server/.venv/
-server/__pycache__/
-server/**/__pycache__/
-server/.pytest_cache/
-server/instance/
-server/migrations/versions/*.pyc
