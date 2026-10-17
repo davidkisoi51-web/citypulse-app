@@ -1,0 +1,46 @@
+{
+  "info": {
+    "name": "CityPulse - Events Proxy API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+          "pm.test('Body is { data: [...] }', function () {",
+          "  const body = pm.response.json();",
+          "  pm.expect(body).to.have.property('data').that.is.an('array');",
+          "  pm.expect(body).to.not.have.property('error');",
+          "});",
+          "pm.test('Events have the canonical CityPulse shape', function () {",
+          "  const keys = [\"id\", \"name\", \"url\", \"image\", \"date\", \"time\", \"venue\", \"city\", \"category\", \"priceMin\", \"priceMax\", \"currency\"];",
+          "  pm.response.json().data.forEach(function (e) {",
+          "    keys.forEach(function (k) { pm.expect(e).to.have.property(k); });",
+          "  });",
+          "});",
+          "pm.test('API key is not exposed', function () {",
+          "  pm.expect(pm.response.text().toLowerCase()).to.not.include('apikey=');",
+          "});"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5001"
+    }
+  ],
+  "item": [
+    {"name":"1. No filters","request":{"method":"GET","url":"{{baseUrl}}/api/events"}},
+    {"name":"2. By city","request":{"method":"GET","url":"{{baseUrl}}/api/events?city=London"}},
+    {"name":"3. By category","request":{"method":"GET","url":"{{baseUrl}}/api/events?category=Music"}},
+    {"name":"4. By date range","request":{"method":"GET","url":"{{baseUrl}}/api/events?startDate=2026-11-01&endDate=2026-12-01"}},
+    {"name":"5. By keyword","request":{"method":"GET","url":"{{baseUrl}}/api/events?keyword=jazz"}},
+    {"name":"6. Combined filters","request":{"method":"GET","url":"{{baseUrl}}/api/events?city=London&category=Music&startDate=2026-11-01&endDate=2026-12-01&keyword=live"}},
+    {"name":"7. City with no results","request":{"method":"GET","url":"{{baseUrl}}/api/events?city=Nowhereville12345"},"event":[{"listen":"test","script":{"type":"text/javascript","exec":["pm.test('No results: data is an empty array', function () { pm.expect(pm.response.json().data).to.have.lengthOf(0); });"]}}]}
+  ]
+}

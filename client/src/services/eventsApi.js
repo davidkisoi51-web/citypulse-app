@@ -6,7 +6,7 @@ const BASE_URL =
   globalThis.process?.env?.VITE_API_BASE_URL ??
   'http://localhost:5001'
 
-const REQUEST_TIMEOUT_MS = 5000
+const REQUEST_TIMEOUT_MS = 10000
 
 export async function fetchEvents({ city, category, startDate, endDate, keyword } = {}) {
   const params = new URLSearchParams()
