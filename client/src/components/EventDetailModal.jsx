@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { formatDate, formatPrice } from '../utils/formatEvent';
+import { isPastEvent } from '../utils/pastEvent';
 import TicketLink from './TicketLink';
 import { paysOnSite } from '../payment/paymentUtils';
 import SaveToPlan from '../plans/SaveToPlan';
@@ -67,6 +68,7 @@ export default function EventDetailModal({ isOpen, onClose, event }) {
   const posterSrc = image || 'https://placehold.co/600x350?text=No+Image+Available';
   const formattedDate = formatDate(date, time);
   const price = formatPrice(priceMin, priceMax, currency);
+  const past = isPastEvent(event);
 
   const locationQuery = [venue, city].filter(Boolean).join(', ');
   const mapsUrl = locationQuery
@@ -98,6 +100,11 @@ export default function EventDetailModal({ isOpen, onClose, event }) {
         </div>
 
         <div className="drawer-content">
+          {past && (
+            <p className="past-event-banner" role="status">
+              This event has already taken place. Tickets are no longer available.
+            </p>
+          )}
           <h2 className="event-title" id="event-modal-title">
             {name}
           </h2>
@@ -124,8 +131,12 @@ export default function EventDetailModal({ isOpen, onClose, event }) {
         </div>
 
         <footer className="drawer-footer">
-          <SaveToPlan event={event} />
-          {url || paysOnSite(event) ? (
+          {!past && <SaveToPlan event={event} />}
+          {past ? (
+            <button className="ticket-btn disabled" disabled>
+              Event ended
+            </button>
+          ) : url || paysOnSite(event) ? (
             <TicketLink url={url} eventName={name} event={event} className="ticket-btn">
               {url ? 'Get Tickets ↗' : 'Get Tickets'}
             </TicketLink>

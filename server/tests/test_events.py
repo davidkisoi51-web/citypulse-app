@@ -1,5 +1,6 @@
 # server/tests/test_events.py
 from unittest.mock import patch
+from datetime import datetime, timezone
 import requests
 
 RAW_RESPONSE = {
@@ -89,3 +90,17 @@ def test_list_events_missing_api_key(client):
         assert response.json["error"]["code"] == "missing_api_key"
     finally:
         client.application.config["TICKETMASTER_API_KEY"] = original
+
+
+def test_list_events_defaults_start_to_now(client):
+    with patch("ticketmaster.requests.get") as mock_get:
+        mock_get.return_value.ok = True
+        mock_get.return_value.json.return_value = {}
+
+        before = datetime.now(timezone.utc).replace(microsecond=0)
+        client.get("/api/events")
+        after = datetime.now(timezone.utc)
+
+        sent = mock_get.call_args.kwargs["params"]["startDateTime"]
+        sent_dt = datetime.strptime(sent, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+        assert before <= sent_dt <= after

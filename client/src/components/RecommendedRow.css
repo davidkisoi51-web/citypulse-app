@@ -1,0 +1,92 @@
+.recommended {
+  margin-bottom: 40px;
+  text-align: left;
+}
+
+.recommended__header {
+  margin-bottom: 16px;
+}
+
+.recommended .recommended__title {
+  margin-bottom: 4px;
+}
+
+.recommended__reason {
+  margin: 0;
+  font-size: 15px;
+  color: var(--text);
+}
+
+/* The enclosed panel the cards travel through. */
+.recommended__panel {
+  position: relative;
+  padding: 20px 0;
+  border: 1px solid var(--accent-border);
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--accent-bg), var(--bg));
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.recommended__track {
+  display: flex;
+  width: max-content;
+  padding: 0 20px;
+}
+
+.recommended__row {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Spacing lives on the items (not `gap`) so the two copies tile exactly. */
+.recommended__item {
+  flex: 0 0 240px;
+  padding-right: 18px;
+
+  @media (max-width: 640px) {
+    flex-basis: 220px;
+    padding-right: 14px;
+  }
+}
+
+/* Moving: soft fade at both edges, slow drift left, paused while the user is on it. */
+.recommended__panel--scrolling {
+  mask-image: linear-gradient(to right, transparent, #000 40px, #000 calc(100% - 40px), transparent);
+
+  .recommended__track {
+    padding: 0;
+    animation: recommended-drift var(--marquee-duration, 40s) linear infinite;
+  }
+
+  &:hover .recommended__track,
+  &:focus-within .recommended__track {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes recommended-drift {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* No motion wanted: a still row the user can scroll by hand, without the repeats. */
+@media (prefers-reduced-motion: reduce) {
+  .recommended__panel--scrolling {
+    overflow-x: auto;
+    mask-image: none;
+
+    .recommended__track {
+      animation: none;
+      padding: 0 20px;
+    }
+
+    .recommended__row[inert],
+    .recommended__item[inert] {
+      display: none;
+    }
+  }
+}

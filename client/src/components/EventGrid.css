@@ -1,8 +1,8 @@
-/* Auto-fills columns: 1 on phones, 2 on tablets, 3–4 on desktop. */
+/* Auto-fills columns: 1 on phones, 2–3 on tablets, 4 on desktop. */
 .event-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+  gap: 18px;
   list-style: none;
   margin: 0;
   padding: 0;

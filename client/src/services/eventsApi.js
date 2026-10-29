@@ -43,6 +43,12 @@ export async function fetchEvents({ city, category, startDate, endDate, keyword 
   }
 }
 
+function todayLocal() {
+  const d = new Date()
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
 function filterMockEvents({ city, category, startDate, endDate, keyword }) {
   return mockEvents.filter((event) => {
     const matchesCity = !city || event.city?.toLowerCase().includes(city.toLowerCase())
@@ -52,7 +58,8 @@ function filterMockEvents({ city, category, startDate, endDate, keyword }) {
       [event.name, event.venue, event.city, event.category]
         .filter(Boolean)
         .some((field) => field.toLowerCase().includes(keyword.toLowerCase()))
-    const matchesStart = !startDate || event.date >= startDate
+    //const matchesStart = !startDate || event.date >= startDate
+    const matchesStart = event.date >= (startDate || todayLocal())
     const matchesEnd = !endDate || event.date <= endDate
 
     return matchesCity && matchesCategory && matchesKeyword && matchesStart && matchesEnd

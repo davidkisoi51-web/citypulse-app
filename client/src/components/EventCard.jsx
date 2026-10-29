@@ -1,4 +1,5 @@
 import { formatDate, formatPrice } from '../utils/formatEvent'
+import { isPastEvent } from '../utils/pastEvent'
 import TicketLink from './TicketLink'
 import './EventCard.css'
 import HeartButton from './HeartButton'
@@ -8,6 +9,7 @@ function EventCard({ event, onSelect, saved = false, saving = false, onToggleSav
     event
   const price = formatPrice(priceMin, priceMax, currency)
   const location = [venue, city].filter(Boolean).join(', ')
+  const past = isPastEvent(event)
 
   const handleKeyDown = (e) => {
     if (!onSelect) return
@@ -19,7 +21,7 @@ function EventCard({ event, onSelect, saved = false, saving = false, onToggleSav
 
   return (
     <article
-      className="event-card"
+      className={past ? 'event-card event-card--past' : 'event-card'}
       onClick={onSelect ? () => onSelect(event) : undefined}
       onKeyDown={onSelect ? handleKeyDown : undefined}
       role={onSelect ? 'button' : undefined}
@@ -35,6 +37,7 @@ function EventCard({ event, onSelect, saved = false, saving = false, onToggleSav
           </div>
         )}
         {category && <span className="event-card__category">{category}</span>}
+        {past && <span className="event-card__past-badge">Past event</span>}
 
         <HeartButton
           saved={saved}
@@ -50,15 +53,19 @@ function EventCard({ event, onSelect, saved = false, saving = false, onToggleSav
 
         <div className="event-card__footer">
           {price && <span className="event-card__price">{price}</span>}
-          <TicketLink
-            className="event-card__link"
-            url={url}
-            eventName={name}
-            event={event}
-            onClick={(e) => e.stopPropagation()}
-          >
-            Get tickets<span className="visually-hidden"> for {name}</span>
-          </TicketLink>
+          {past ? (
+            <span className="event-card__ended">Event ended</span>
+          ) : (
+            <TicketLink
+              className="event-card__link"
+              url={url}
+              eventName={name}
+              event={event}
+              onClick={(e) => e.stopPropagation()}
+            >
+              Get tickets<span className="visually-hidden"> for {name}</span>
+            </TicketLink>
+          )}
         </div>
       </div>
     </article>

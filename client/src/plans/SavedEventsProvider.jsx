@@ -30,7 +30,9 @@ function SavedEventsProvider({ children }) {
     listAllSavedEvents()
       .then((list) => {
         if (cancelled) return
-        const map = new Map(list.map((ev) => [ev.ticketmaster_id, { id: ev.id, planId: ev.plan_id }]))
+        const map = new Map(
+          list.map((ev) => [ev.ticketmaster_id, { id: ev.id, planId: ev.plan_id, category: ev.category, city: ev.city }]),
+        )
         setStore({ email, saved: map })
       })
       .catch(() => {}) // hearts just show as unsaved if the API is down
@@ -78,7 +80,7 @@ function SavedEventsProvider({ children }) {
       setSavingIds((ids) => [...ids, key])
       try {
         const created = await addSavedEvent(plan.id, eventToSnapshot(event))
-        updateSaved((m) => m.set(key, { id: created.id, planId: plan.id }))
+        updateSaved((m) => m.set(key, { id: created.id, planId: plan.id, category: event.category, city: event.city }))
         setToast({ text: `Saved "${event.name}" to ${plan.title}.`, link: `/plans/${plan.id}` })
         return true
       } catch (err) {
@@ -130,6 +132,8 @@ function SavedEventsProvider({ children }) {
   const value = useMemo(
     () => ({
       savedIds: [...saved.keys()],
+      // { id, category, city } per saved event, for "Recommended for you".
+      savedEvents: [...saved].map(([id, { category, city }]) => ({ id, category, city })),
       savingIds,
       isSaved: (id) => saved.has(String(id)),
       isSaving: (id) => savingIds.includes(String(id)),

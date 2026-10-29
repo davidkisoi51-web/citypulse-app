@@ -47,10 +47,17 @@ function LoginPage() {
       notice={redirect.eventName && `Log in to buy tickets for ${redirect.eventName}.`}
       footer={
         <>
+        <div>
+          <Link to="/forgot-password">
+            Forgot your password?
+          </Link>
+        </div>
+        <div>
           New here?{' '}
           <Link to="/signup" state={redirect}>
             Create an account
           </Link>
+        </div>  
         </>
       }
     >
@@ -64,7 +71,7 @@ function LoginPage() {
           id="email"
           label="Email"
           type="email"
-          autoComplete="email"
+          autoComplete="off"
           value={values.email}
           onChange={update}
           error={errors.email}
