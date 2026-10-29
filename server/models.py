@@ -143,12 +143,51 @@ class SavedEvent(db.Model):
         return self.serialize()
 
 
+class Tickets(db.Model):
+    __tablename__ = "tickets"
+
+    id = db.Column(db.Integer, primary_key = True)
+    user_id =  db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
+    #do I have to lookup the users_id bases on their email?
+    paid_at = db.Column(db.String(80))
+    event_id = db.Column(db.Integer, nullable = False)
+    event_name = db.Column(db.String) #event name
+    event_date = db.Column(db.String(80))
+    event_time = db.Column(db.String(80))
+    event_venue = db.Column(db.String)
+    event_city = db.Column(db.String)
+    mpesa_no =  db.Column(db.String) #needs to be validated
+    ticket_type = db.Column(db.String)
+    price = db.Column(db.Integer)
+    no_of_tickets = db.Column(db.Integer)
+    transferable = db.Column(db.Boolean, default = True)
+
+    def dict(self):
+        return {
+            "id": self.id,
+            "event name": self.event_name,
+            "event date": self.event_date,
+            "event time": self.event_time,
+            "event venue": self.event_venue,
+            "event city": self.event_city,
+            "MPESA_No.": self.mpesa_no,
+            "paid At": self.paid_at,
+            "price": self.price,
+            "ticket type": self.ticket_type,
+            "number of tickets": self.no_of_tickets,
+            "transferable": self.transferable
+        }
+
+
+
+
 class UserSchema(Schema):
     id = fields.Int(dump_only = True)
     name = fields.String()
     email = fields.String()
 
     plans = fields.List(fields.Nested(lambda:PlanSchema(exclude=("user",))))
+    tickets = fields.List(fields.Nested(lambda:TicketsSchema(exclude=("user_id",))))
 
 class PlanSchema(Schema):
     id = fields.Int(dump_only = True)
@@ -162,5 +201,19 @@ class PlanSchema(Schema):
 class SavedEventsSchema(Schema):
     plans = fields.Nested(PlanSchema(exclude= ("savedevents",)))
 
-
+class TicketsSchema(Schema):
+        id = fields.Int(dump_only = True)
+        paid_at = fields.String()
+        event_id = fields.String()
+        event_name = fields.String()
+        event_date = fields.String()
+        event_time = fields.String()
+        event_venue = fields.String()
+        event_city = fields.String()
+        mpesa_no =  fields.String()
+        ticket_type = fields.String()
+        price = fields.Int()
+        no_of_tickets = fields.Int()
+        transferable = fields.Boolean()
+        user_id = fields.Nested(UserSchema(exclude = ("tickets",)))
 

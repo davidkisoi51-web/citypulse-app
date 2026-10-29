@@ -8,4 +8,13 @@ export default defineConfig({
     environment: 'jsdom',
     include: ['src/tests/globalUI.test.jsx'],
   },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5173/5001', // 
+        changeOrigin: true,
+        secure: false,
+      },
+    },
+  },
 })

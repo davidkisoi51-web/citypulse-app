@@ -4,8 +4,11 @@ from datetime import timedelta
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 
+from auth import require_user
+import datetime
+
 from extensions import db
-from models import User
+from models import User, Tickets, TicketsSchema
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -44,6 +47,48 @@ def login():
         return jsonify(error={"code": "unauthorized", "message": "Invalid email or password."}), 401
     token = create_access_token(identity=str(user.id), expires_delta=timedelta(hours=3))
     return jsonify(data={"user": public_user(user), "token": token}), 200
+
+@auth_bp.get("/tickets/<int:user_id>")
+def tickets(user_id): 
+    #specify user_id is the logged in user when working on front end
+    #when they sleect multiple tickets, makje sure it shows the amount of tickets
+     
+    retrieval = db.session.scalars(db.select(Tickets).where(Tickets.user_id == user_id))
+
+    output = {"data": [each.dict() for each in retrieval]}
+
+    if output["data"] == [] : 
+            return {"msg": "No Tickets available for this user, *Back to Events*"}
+        
+    return jsonify(output)
+
+@auth_bp.post("/tickets")
+#@require_user
+def create_ticket():
+    data = request.get_json() or {}
+    event_id = data["eventID"]
+    event_name = data["eventName"]
+    event_date = data["eventDate"]
+    event_time = data['eventTime']
+    event_venue = data["eventVenue"]
+    event_city = data["eventCity"]
+    ticket_type = data["ticketType"]
+    quantity = data["quantity"]
+    unit_price = data["unitPrice"]
+    paidAt = data["paidAt"]
+    transferable = True
+
+    #need to reference user_id from the auth
+    ticket = Tickets(user_id = "", event_id = event_id, paid_at = datetime.datetime.now(), event_name = event_name, event_date = event_date, event_time = event_time, event_venue = event_venue ,event_city = event_city, ticket_type = ticket_type, price = unit_price, no_of_tickets = quantity, transferable = transferable)
+    db.session.add(ticket)
+    db.session.commit()
+
+    new_ticket = TicketsSchema().dump(ticket)
+
+    output = {
+        "msg": new_ticket
+    }
+    return jsonify(output)
 
 
 @auth_bp.get("/me")
