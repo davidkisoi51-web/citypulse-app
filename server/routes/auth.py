@@ -48,10 +48,11 @@ def login():
     token = create_access_token(identity=str(user.id), expires_delta=timedelta(hours=3))
     return jsonify(data={"user": public_user(user), "token": token}), 200
 
-@auth_bp.get("/tickets/<int:user_id>")
+
+@auth_bp.get("/tickets")
+@jwt_required
 def tickets(user_id): 
-    #specify user_id is the logged in user when working on front end
-    #when they sleect multiple tickets, makje sure it shows the amount of tickets
+    user_id = int(get_jwt_identity())
      
     retrieval = db.session.scalars(db.select(Tickets).where(Tickets.user_id == user_id))
 
@@ -62,14 +63,17 @@ def tickets(user_id):
         
     return jsonify(output)
 
+
 @auth_bp.post("/tickets")
-#@require_user
+@jwt_required()
 def create_ticket():
+    user_identity = int(get_jwt_identity())
+
     data = request.get_json() or {}
-    event_id = data["eventID"]
+    event_id = data.get("eventID")
     event_name = data["eventName"]
     event_date = data["eventDate"]
-    event_time = data['eventTime']
+    event_time = data.get("eventTime")
     event_venue = data["eventVenue"]
     event_city = data["eventCity"]
     ticket_type = data["ticketType"]
@@ -78,8 +82,10 @@ def create_ticket():
     paidAt = data["paidAt"]
     transferable = True
 
-    #need to reference user_id from the auth
-    ticket = Tickets(user_id = "", event_id = event_id, paid_at = datetime.datetime.now(), event_name = event_name, event_date = event_date, event_time = event_time, event_venue = event_venue ,event_city = event_city, ticket_type = ticket_type, price = unit_price, no_of_tickets = quantity, transferable = transferable)
+    if not event_id or not isinstance(event_time,str):
+        return {"key_error_msg": "please include event_id and/or event_time"}
+
+    ticket = Tickets(user_id = user_identity, event_id = event_id, paid_at = datetime.datetime.now(), event_name = event_name, event_date = event_date, event_time = event_time, event_venue = event_venue ,event_city = event_city, ticket_type = ticket_type, price = unit_price, no_of_tickets = quantity, transferable = transferable)
     db.session.add(ticket)
     db.session.commit()
 

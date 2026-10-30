@@ -8,22 +8,16 @@ import { formatAmount } from '../payment/paymentUtils'
 import { downloadPdf, receiptFileName, receiptPdfForPurchase } from '../payment/receipt'
 import { formatDate } from '../utils/formatEvent'
 import './PaymentPage.css'
-import { TransferTickets } from './TransferTicket'
 
 // The logged-in customer's purchase history, with receipts they can download again.
 function MyTicketsPage() {
   const { user } = useAuth()
   const [purchases] = useState(() => loadPurchases())
+  
 
   if (!user) return <Navigate to="/login" replace state={{ from: '/my-tickets' }} />
 
   const mine = purchases.filter((p) => normalizeEmail(p.buyerEmail) === normalizeEmail(user.email))
-
-  function onHover(){
-    return <div class="hover_message" title='test_hover'style={{position: "absolute", content: Attr(title), display: "inline-block", left: "0px", top: "0px", padding: "5px", backgroundColor: "black", color: "white"}}>
-      <p>hovertedt</p>
-    </div>
-  }
 
   return (
     <>
@@ -68,7 +62,6 @@ function MyTicketsPage() {
                 >
                   Download receipt<span className="visually-hidden"> for {p.eventName}</span>
                 </button>
-                <button className='transfer_ticket_btn'onMouseEnter={onHover} onClick={TransferTickets}>Transfer Ticket</button>
               </li>
             ))}
           </ul>

@@ -176,7 +176,8 @@ function PaymentPage() {
       paidTo: mpesaCode === 'FREE' ? null : MPESA_NUMBER_DISPLAY,
     }
     //const test_values = (e) => setValues((v) => ({...record, [e.target.name]: e.target.value }))
-    recordPurchase(setValues(record))
+    setValues(record)
+    recordPurchase(record)
     setPurchase(record)
   }
 

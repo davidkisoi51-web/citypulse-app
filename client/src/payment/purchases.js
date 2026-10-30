@@ -22,7 +22,8 @@ export function recordPurchase(ticket) {
   //}
   fetch(API_URL,{
     method: "POST",
-    headers: {"Content-Type": "application/json"},
+    headers: {"Content-Type": "application/json", 
+        "Authorization": `Bearer <token>`},
     body: JSON.stringify(ticket),
   })
     .then(response => {
@@ -30,11 +31,9 @@ export function recordPurchase(ticket) {
       return response.json()
     })
     .then((data)=> {
-      onAddTicket(data)
-      //this part should send the data to the db.
-      //setValues((v) => ({ ...v, [data.target.name]: data.target.value }))
+      return data.json()
   })
-  .catch((error) =>  {return console.log(error)})
+  .catch((error) =>  {return error})
 }
 
 

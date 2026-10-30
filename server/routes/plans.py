@@ -3,7 +3,6 @@ from datetime import date, timedelta
 
 from flask import Blueprint, g, jsonify, request
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
-
 from auth import require_user
 from extensions import db
 from models import Plan, SavedEvent
