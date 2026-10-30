@@ -10,6 +10,7 @@ import datetime
 
 from extensions import db
 from models import User, Tickets, TicketsSchema
+
 from services.email_service import send_verification_email, send_welcome_email
 auth_bp = Blueprint("auth", __name__)
 

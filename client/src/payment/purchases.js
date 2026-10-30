@@ -2,8 +2,7 @@
 // localStorage until there's a backend, so it only lists purchases made in this browser.
 
 export const PURCHASES_KEY = 'citypulse.purchases'
-export const API_URL ="http://localhost:5173/api/auth/tickets"
-
+export const API_URL = '/api/auth/tickets'
 export function loadPurchases(storage = globalThis.localStorage) {
   try {
     const parsed = JSON.parse(storage?.getItem(PURCHASES_KEY) ?? '[]')
