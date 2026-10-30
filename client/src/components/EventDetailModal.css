@@ -249,3 +249,16 @@
   background-color: var(--code-bg);
   cursor: not-allowed;
 }
+
+/* Shown at the top of the details when the event has already happened. */
+.past-event-banner {
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-h);
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--text);
+}

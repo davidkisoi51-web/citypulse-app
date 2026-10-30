@@ -49,9 +49,21 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(readSession)
 
   const signup = useCallback(async ({ name, email, password }) => {
-    const session = await authRequest('register', { name: name.trim(), email: email.trim().toLowerCase(), password })
-    setUser(session)
-    return session
+    const res = await fetch(`${API_URL}/auth/register`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({name: name.trim(), email:email.trim().toLowerCase(), password})
+    })
+    const json = await res.json()
+    console.log("REGISTER:", json, "STATUS:", res.status)
+
+    if (!res.ok){
+      throw new Error(json.error?.message || json.error || json.message|| "Signup failed")
+    }
+    //const session = await authRequest('register', { name: name.trim(), email: email.trim().toLowerCase(), password })
+    //setUser(session)
+    //return session
+    return json.data
   }, [])
 
   const login = useCallback(async ({ email, password }) => {

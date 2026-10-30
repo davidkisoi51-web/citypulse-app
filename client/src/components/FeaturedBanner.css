@@ -2,11 +2,11 @@
 .featured-banner {
   position: relative;
   display: grid;
-  grid-template-columns: 1fr minmax(260px, 340px);
+  grid-template-columns: 1fr minmax(220px, 260px);
   align-items: center;
-  gap: 32px;
-  margin-bottom: 32px;
-  padding: 40px;
+  gap: 28px;
+  margin-bottom: 28px;
+  padding: 28px 32px;
   border-radius: 16px;
   overflow: hidden;
   text-align: left;
@@ -45,7 +45,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 14px;
+  gap: 10px;
 }
 
 .featured-banner__eyebrow {
@@ -82,20 +82,20 @@
 
 .featured-banner__title {
   margin: 0;
-  font-size: 40px;
+  font-size: 30px;
   font-weight: 700;
   line-height: 1.1;
   letter-spacing: -0.8px;
   color: #fff;
 
   @media (max-width: 760px) {
-    font-size: 28px;
+    font-size: 24px;
   }
 }
 
 .featured-banner__text {
-  max-width: 520px;
-  font-size: 17px;
+  max-width: 480px;
+  font-size: 15px;
   color: rgba(255, 255, 255, 0.9);
 
   strong {
@@ -104,8 +104,9 @@
 }
 
 .featured-banner__cta {
-  margin-top: 6px;
-  padding: 12px 24px;
+  margin-top: 4px;
+  padding: 10px 20px;
+  font-size: 15px;
   border-radius: 999px;
   font-weight: 600;
   color: #16171d;
@@ -131,4 +132,9 @@
   --bg: #1b0809;
   border-color: rgba(255, 255, 255, 0.08);
   box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.45);
+}
+
+/* The featured event has already happened: muted colours, no early-bird pitch. */
+.featured-banner--past {
+  background: linear-gradient(135deg, #1c1c1f, #3a3a40);
 }

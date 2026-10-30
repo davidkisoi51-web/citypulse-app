@@ -13,6 +13,11 @@ class User(db.Model):
     name = db.Column(db.String(120), unique=True, nullable=False)
     email = db.Column(db.String(255), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
+    is_verified = db.Column(db.Boolean, nullable=False, default=False)
+    verification_code = db.Column(db.String(5), nullable=True)
+    code_expires_at = db.Column(db.DateTime(timezone=True), nullable=True)
+    reset_code = db.Column(db.String(5), nullable=True)
+    reset_expires_at = db.Column(db.DateTime(timezone=True), nullable=True)
 
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utc_now)
     plans = db.relationship("Plan", back_populates="user", cascade="all, delete-orphan", passive_deletes=True)

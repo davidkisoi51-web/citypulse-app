@@ -1,8 +1,8 @@
-"""Initial CityPulse schema
+"""fresh with all columns
 
-Revision ID: d38c53314bc1
+Revision ID: 9ec73b561ea0
 Revises: 
-Create Date: 2026-10-10 06:31:57.388321
+Create Date: 2026-10-27 01:31:54.646477
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'd38c53314bc1'
+revision = '9ec73b561ea0'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -23,8 +23,14 @@ def upgrade():
     sa.Column('name', sa.String(length=120), nullable=False),
     sa.Column('email', sa.String(length=255), nullable=False),
     sa.Column('password_hash', sa.String(length=255), nullable=False),
+    sa.Column('is_verified', sa.Boolean(), nullable=False),
+    sa.Column('verification_code', sa.String(length=5), nullable=True),
+    sa.Column('code_expires_at', sa.DateTime(timezone=True), nullable=True),
+    sa.Column('reset_code', sa.String(length=5), nullable=True),
+    sa.Column('reset_expires_at', sa.DateTime(timezone=True), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('name')
     )
     with op.batch_alter_table('users', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_users_email'), ['email'], unique=True)
@@ -34,9 +40,12 @@ def upgrade():
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('title', sa.String(length=160), nullable=False),
     sa.Column('description', sa.Text(), nullable=True),
-    sa.Column('plan_date', sa.Date(), nullable=True),
+    sa.Column('event_date', sa.Date(), nullable=True),
     sa.Column('city', sa.String(length=120), nullable=True),
+    sa.Column('status', sa.String(length=20), server_default='saved', nullable=False),
+    sa.Column('is_public', sa.Boolean(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )

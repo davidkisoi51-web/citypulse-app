@@ -14,12 +14,12 @@
   flex-wrap: wrap;
 }
 
-/* Every control is 44px tall so the whole filter panel lines up. */
+/* Every control is 38px tall so the whole filter panel lines up. */
 .input-wrap {
   display: flex;
   align-items: center;
   gap: 8px;
-  height: 44px;
+  height: 38px;
   box-sizing: border-box;
   padding: 0 14px;
   background: var(--bg);

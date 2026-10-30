@@ -6,6 +6,7 @@ requests through this module so the key never reaches the browser.
 """
 import requests
 from flask import current_app
+from datetime import datetime, timezone
 
 BASE_URL = "https://app.ticketmaster.com/discovery/v2/events.json"
 REQUEST_TIMEOUT_SECONDS = 8
@@ -34,6 +35,9 @@ def fetch_events(keyword=None, city=None, category=None, start_date=None, end_da
         params["classificationName"] = category
     if start_date:
         params["startDateTime"] = f"{start_date}T00:00:00Z"
+    else:
+        # No explicit start date: only upcoming events
+        params["startDateTime"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")    
     if end_date:
         params["endDateTime"] = f"{end_date}T23:59:59Z"
 
