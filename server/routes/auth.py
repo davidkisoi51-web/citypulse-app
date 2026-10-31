@@ -154,9 +154,10 @@ def reset_password():
     return jsonify(data={"message": "Password reset successfully, login now."}), 200
 
 @auth_bp.get("/tickets")
-@jwt_required
-def tickets(user_id): 
-    user_id = int(get_jwt_identity())
+def tickets(): 
+
+    #authentication help!!
+    user_id = 1
      
     retrieval = db.session.scalars(db.select(Tickets).where(Tickets.user_id == user_id))
 
@@ -167,14 +168,20 @@ def tickets(user_id):
         
     return jsonify(output)
 
+#make a route for the tranfer tickets to change user_id for a specific ticket (by the ticket_id), 
+# to the given user's (given by email), search user_email and add ticket to their data row.
+@auth_bp.post("/tickets/transfer")
+def transfer_tickets():
+    data = request.get_json() or {}
+    
 
 @auth_bp.post("/tickets")
-@jwt_required()
+#@jwt_required()
 def create_ticket():
-    user_identity = int(get_jwt_identity())
-
+    #not sure how to configure to get the user identity without causing a 422
+    user_identity = 1
     data = request.get_json() or {}
-    event_id = data.get("eventID")
+    event_id = data.get("eventId")
     event_name = data["eventName"]
     event_date = data["eventDate"]
     event_time = data.get("eventTime")
@@ -183,7 +190,6 @@ def create_ticket():
     ticket_type = data["ticketType"]
     quantity = data["quantity"]
     unit_price = data["unitPrice"]
-    paidAt = data["paidAt"]
     transferable = True
 
     if not event_id or not isinstance(event_time,str):

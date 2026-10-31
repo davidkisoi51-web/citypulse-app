@@ -36,7 +36,6 @@ function PaymentPage() {
 
 
   const [values, setValues] = useState({event_Id : eventId, eventName :"", eventDate :"",eventVenue :"", eventCity :"", ticketType :"",quantity: 0, unitPrice: 0, paidAt: ""})
-  const [error, setError] = useState(null)
 
   // Buying tickets needs an account (same rule as "Get tickets").
   if (!user) return <Navigate to="/login" replace state={{ from: `/pay/${eventId}`, eventName: event?.name }} />
@@ -153,10 +152,10 @@ function PaymentPage() {
   }
 
   // Confirms the payment: shows the success screen and logs the purchase for the admin portal.
-  const completePurchase = (mpesaCode) => {
-     const record = {
+   const completePurchase = (mpesaCode) => {
+      const record = {
       receiptNo: newReceiptNumber(),
-      paidAt: new Date().toISOString(),
+      //paidAt: new Date().toISOString(),
       buyerName: user.name,
       buyerEmail: user.email,
       eventId: event.id,
@@ -175,7 +174,6 @@ function PaymentPage() {
       mpesaCode: mpesaCode === 'FREE' ? null : mpesaCode,
       paidTo: mpesaCode === 'FREE' ? null : MPESA_NUMBER_DISPLAY,
     }
-    //const test_values = (e) => setValues((v) => ({...record, [e.target.name]: e.target.value }))
     setValues(record)
     recordPurchase(record)
     setPurchase(record)

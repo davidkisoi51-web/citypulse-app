@@ -153,7 +153,6 @@ class Tickets(db.Model):
 
     id = db.Column(db.Integer, primary_key = True)
     user_id =  db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
-    #do I have to lookup the users_id bases on their email?
     paid_at = db.Column(db.String(80))
     event_id = db.Column(db.String, nullable = False)
     event_name = db.Column(db.String) #event name

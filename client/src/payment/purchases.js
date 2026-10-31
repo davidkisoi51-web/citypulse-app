@@ -3,6 +3,7 @@
 
 export const PURCHASES_KEY = 'citypulse.purchases'
 export const API_URL = '/api/auth/tickets'
+
 export function loadPurchases(storage = globalThis.localStorage) {
   try {
     const parsed = JSON.parse(storage?.getItem(PURCHASES_KEY) ?? '[]')
@@ -12,13 +13,8 @@ export function loadPurchases(storage = globalThis.localStorage) {
   }
 }
 
-// Adds a purchase (newest first). Returns false if the browser couldn't save it.
 export function recordPurchase(ticket) {
-   // const newTicket = {
-     // eventId, eventName, eventDate,
-      //eventVenue, eventCity, ticketType,
-    //  quantity, unitPrice, paidAt
-  //}
+
   fetch(API_URL,{
     method: "POST",
     headers: {"Content-Type": "application/json", 
@@ -31,7 +27,7 @@ export function recordPurchase(ticket) {
     })
     .then((data)=> {
       return data.json()
-  })
+    })
   .catch((error) =>  {return error})
 }
 

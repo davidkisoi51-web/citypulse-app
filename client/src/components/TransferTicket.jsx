@@ -8,12 +8,11 @@ import './TransferTickets.css'
 //need to add email validation and transfer functions
 export function TransferTickets({onTransfer}){
    // const {user} = useAuth
-    console.log("working")
 
     function handleSumbit(event){
         event.preventDefault()
 
-        //placeholder before the functionality
+        //placeholder before implementing functionality
         const user_email = ""
 
         fetch(API_URL,{
@@ -30,8 +29,8 @@ export function TransferTickets({onTransfer}){
        }
 
        function ticketSelect(){
-
-        fetch(API_URL,{
+         fetch(API_URL,{
+            methods: "GET",
             headers: {
             "Authorization": `Bearer <token>`},
         })
@@ -39,13 +38,18 @@ export function TransferTickets({onTransfer}){
         if (!response.ok){ throw new Error ("post request failed")}
         return response.json()
         })
-        .then((data)=> {
-            console.log("working")
-        return data.json()
+        .then(data => { 
+            for (const test of data){
+            return (
+                <>
+                <option value ={test}>test</option>
+                </>
+            )
+            }
         })
         .catch((error) =>  {return error})
        }
-
+       
        return (
         <>
         <NavBar />
@@ -54,7 +58,7 @@ export function TransferTickets({onTransfer}){
         </Link>
         <h3>Transfer Tickets</h3>
         <p className="transfer_desc">Transfer a ticket over to another user!</p>
-        <main className="ticket-transfer">        
+        <main className="ticket_transfer">        
         <div className ="transfer_card" >   
             <form className="transfer_form"  onSubmit={handleSumbit}>
 
@@ -64,9 +68,8 @@ export function TransferTickets({onTransfer}){
 
                 <div className="select_transfer">
                 <p className="p_transfer">Ticket to transfer:</p>
-                <select className="ticket_select">
-                    <option > Select ticket</option>
-                    <option onSelect={{ticketSelect}}>need to iterate over user tickets</option>
+                <select className="ticket_select" onClick={ticketSelect}>
+                    
                 </select>
                 </div>
 
