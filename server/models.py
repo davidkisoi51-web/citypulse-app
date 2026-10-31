@@ -5,7 +5,7 @@ from marshmallow import Schema, fields
 
 def utc_now():
     return datetime.now(timezone.utc)
-
+# User model
 class User(db.Model):
     __tablename__ = "users"
 
@@ -21,6 +21,7 @@ class User(db.Model):
 
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utc_now)
     plans = db.relationship("Plan", back_populates="user", cascade="all, delete-orphan", passive_deletes=True)
+    reminder_preference = db.relationship("ReminderPreference", back_populates="user", uselist=False, cascade="all, delete-orphan", passive_deletes=True)
 
     def set_password(self, password):
         self.password_hash = bcrypt.generate_password_hash(password.encode("utf-8")).decode("utf-8")
@@ -31,7 +32,7 @@ class User(db.Model):
     def __repr__(self):
         return f'User {self.name}'
 
-
+# Plan model
 class Plan(db.Model):
     __tablename__ = "plans"
 
@@ -69,6 +70,7 @@ class Plan(db.Model):
     def to_dict(self, include_events=False):
         return self.serialize(include_events=include_events)
 
+# SavedEvent model
 class SavedEvent(db.Model):
     __tablename__ = "saved_events"
     __table_args__ = (db.UniqueConstraint("plan_id", "ticketmaster_id", name="uq_saved_event_plan_ticketmaster"),)
@@ -148,7 +150,28 @@ class SavedEvent(db.Model):
     def to_dict(self):
         return self.serialize()
 
+# Reminder Preference model
+class ReminderPreference(db.Model):
+    __tablename__ = "reminder_preferences"
 
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True, index=True)
+
+    enabled = db.Column(db.Boolean, nullable=False, default=True, server_default=db.true())
+    minutes_before = db.Column(db.Integer, nullable=False, default=60, server_default="60")
+    updated_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utc_now, onupdate=utc_now)
+
+    user = db.relationship("User", back_populates="reminder_preference")
+
+    def serialize(self):
+        return {
+            "enabled": self.enabled,
+            "minutes_before": self.minutes_before,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None
+        }
+
+
+# User and Plan Marshmallow Schemas
 class UserSchema(Schema):
     id = fields.Int(dump_only = True)
     name = fields.String()
@@ -168,7 +191,7 @@ class PlanSchema(Schema):
 class SavedEventsSchema(Schema):
     plans = fields.Nested(PlanSchema(exclude= ("savedevents",)))
 
-
+#Payment model
 class Payment(db.Model):
     __tablename__ = "payments"
 
@@ -206,7 +229,7 @@ class Payment(db.Model):
 
 
 
-
+# Authentication Rate Limit model
 class AuthRateLimit(db.Model):
     """Persistent, account-keyed authentication rate-limit counters."""
 

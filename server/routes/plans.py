@@ -6,12 +6,12 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from auth import require_user
 from extensions import db
-from models import Plan, SavedEvent
+from models import Plan, SavedEvent, ReminderPreference
 
 plans_bp = Blueprint("plans", __name__)
 EVENT_STATUSES = {"interested", "going"}
 PLAN_STATUSES = {"saved", "planning", "completed", "cancelled"}
-
+ALLOWED_REMINDER_FREQUENCIES = {"60", "120", "1440", "2880"}
 
 def error(code, message, status):
     return jsonify(error={"code": code, "message": message}), status
@@ -334,3 +334,49 @@ def get_notifications():
         SavedEvent.date <= next_week.isoformat(),
     ).order_by(SavedEvent.date.asc()).all()
     return jsonify(count=len(events), data=[event.serialize() for event in events], has_notifications=bool(events)), 200
+
+@plans_bp.get("/notifications/preferences")
+@require_user
+def get_reminder_preferences():
+    preference = ReminderPreference.query.filter_by(user_id=g.current_user.id).first()
+    
+    if preference is None:
+        preference = ReminderPreference(user_id=g.current_user.id, enabled=True, minutes_before=60)
+
+        db.session.add(preference)
+        db.session.commit()
+        
+    return jsonify(data=preference.serialize()), 200
+
+@plans_bp.put("/notifications/preferences")
+@require_user
+def update_reminder_preferences():
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict):
+        return error("invalid_json", "A JSON object is required", 400)
+
+    enabled = payload.get("enabled")
+    minutes_before = payload.get("minutes_before")
+
+    if type(enabled) is not bool:
+        return error("validation_error", "enabled must be true or false", 422)
+
+    if (type(minutes_before) is not int or minutes_before not in ALLOWED_REMINDER_FREQUENCIES): 
+        return error("validation_error", "minutes_before must be a positive integer", 422)
+
+    preference = ReminderPreference.query.filter_by(user_id=g.current_user.id).first()
+    
+    if preference is None:
+        preference = ReminderPreference(user_id=g.current_user.id)
+        db.session.add(preference)
+
+    preference.enabled = enabled
+    preference.minutes_before = minutes_before
+
+    try:
+        db.session.commit()
+    except SQLAlchemyError:
+        db.session.rollback()
+        return error("database_error", "Failed to save reminder preferences", 500)
+    
+    return jsonify(data=preference.serialize()), 200

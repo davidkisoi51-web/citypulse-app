@@ -24,7 +24,7 @@ import Privacy from './pages/Privacy.jsx'
 import Terms from './pages/Terms.jsx'
 import Cookies from './pages/Cookies.jsx'
 import VerifyEmailPage from './pages/VerifyEmailPage.jsx'
-
+import NotificationSettings from './pages/NotificationSettings.jsx'
 
 registerSW({ immediate: true })
 
@@ -48,6 +48,7 @@ createRoot(document.getElementById('root')).render(
           <Route path="/my-tickets" element={<MyTicketsPage />} />
           <Route path="/plans" element={<MyPlansPage />} />
           <Route path="/plans/:planId" element={<PlanDetailsPage />} />
+          <Route path="/notification-settings" element={<NotificationSettings />} />
           <Route path="/about-us" element={<About />} />
           <Route path="/contact-us" element={<Contact />} />
           <Route path="/privacy-policy" element={<Privacy />} />

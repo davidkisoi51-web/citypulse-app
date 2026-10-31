@@ -1,0 +1,48 @@
+
+.notification-settings {
+  max-width: 680px;
+  margin: 40px auto;
+  padding: 24px;
+  color: #cecfd1;
+}
+
+.notification-settings h1 {
+  margin-bottom: 12px;
+}
+
+.notification-settings__section {
+  margin: 24px 0;
+}
+
+.notification-settings__section label {
+  display: block;
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+.notification-settings__section input[type='checkbox'] {
+  margin-right: 10px;
+}
+
+.notification-settings__section select {
+  display: block;
+  width: 100%;
+  max-width: 360px;
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+}
+
+.notification-settings button {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #e11d48;
+  color: white;
+  cursor: pointer;
+}
+
+.notification-settings button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
