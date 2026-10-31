@@ -1,0 +1,15 @@
+If running locally: 
+
+Step 1. Ensure all the 6 tokens have been added to your /server/.env file
+
+Step 2. If running locally in your machine: We use a software known as ngrok. Open a new terminal, direct it to the project's file path.
+	Run the following commands
+	1. sudo snap install ngrok , to officially install the package
+	2. ngrok config add-authtoken 3LKnM8EiOO0mo82dPdPHxv0sOVX_5bZJdW6qBQtP2A42KQfg5
+	   In this case, this is an already generated token linking to my ngrok account, if it causes errors or fails, you'll need to open a 	   new account in ngrok, choose Gateway and Your Authtoken next, copy the token provided and rerun the command with your token. 
+	   If there are no errors with the initial command, proceed to the next
+	3. ngrok http 5001 , to activate it, and then leave it running alongside the client and server terminals
+	   If you had to open a new account with ngrok in the previous part, once you run this command there will be a link next to 		   Forwarding, ensure it matches the MPESA_CALLBACK_URL in the .env otherwise replace the relevant part with yours.
+
+
+If running on Render, no need to create a ngrok profile. Go to .env and to MPESA_CALLBACK_URL, replace the link with the render link for the project, and add this filepath at the end of it: /api/payments/mpesa/callback. Ensure that value is added to the Environments section for the project in Render too just like the others. Then run the website and test.

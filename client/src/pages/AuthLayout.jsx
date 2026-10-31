@@ -7,7 +7,7 @@ function AuthLayout({ title, subtitle, notice, children, footer }) {
     <main className="auth">
       <Link className="auth__brand" to="/">
         {/* Logo only (no text), so the alt text gives the link its name. */}
-        <img className="auth__logo" src="/group2-logo.jpg" alt="Group2 home" width="120" height="120" />
+        <img className="auth__logo" src="/citypulse-mark.svg" alt="CityPulse home" width="120" height="120" />
       </Link>
 
       <section className="auth__card" aria-labelledby="auth-title">

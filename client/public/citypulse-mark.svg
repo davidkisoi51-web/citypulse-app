@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
+<title>CityPulse city skyline</title>
+<defs>
+ <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#102b49"/><stop offset="1" stop-color="#071727"/></linearGradient>
+ <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#d8efff"/><stop offset="1" stop-color="#69b7ed"/></linearGradient>
+</defs>
+<rect width="128" height="128" rx="27" fill="url(#bg)"/>
+<path d="M13 104h102" stroke="#4b88b8" stroke-width="3" stroke-linecap="round"/>
+<path d="M19 104V73l12-9v40M35 104V48l11-10 11 10v56M61 104V24l11-14 11 14v80M89 104V57l10-9 10 9v47" fill="url(#sky)" stroke="#eaf7ff" stroke-width="2" stroke-linejoin="round"/>
+<path d="M66 33h12M66 46h12M66 59h12M40 58h12M40 70h12M94 67h10M94 79h10" stroke="#17466d" stroke-width="2" stroke-linecap="round"/>
+<path d="M24 104V86M46 104V83M72 104V73M99 104V87" stroke="#17466d" stroke-width="3" stroke-linecap="round"/>
+</svg>

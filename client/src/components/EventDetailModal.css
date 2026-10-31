@@ -262,3 +262,39 @@
   border: 1px solid var(--border);
   border-left: 4px solid var(--text);
 }
+
+
+.calendar-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 16px 0 4px;
+}
+
+.calendar-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--code-bg);
+  color: var(--text-h);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.calendar-action:hover {
+  border-color: var(--accent);
+  filter: brightness(1.08);
+}
+
+@media (max-width: 380px) {
+  .calendar-actions { grid-template-columns: 1fr; }
+}

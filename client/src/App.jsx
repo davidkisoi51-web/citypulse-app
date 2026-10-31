@@ -25,7 +25,7 @@ function todayLocal() {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
 
-const DEFAULT_CITY = import.meta.env?.VITE_DEFAULT_CITY || ''
+const DEFAULT_CITY = import.meta.env?.VITE_DEFAULT_CITY || 'Nairobi'
 // Always offered in the city dropdown, even if the current feed has none of that city's events.
 const CITY_OPTIONS = ['Nairobi', 'Mombasa', 'Kisumu', 'Nakuru', 'Eldoret', 'Las Vegas', 'San Fransisco', 'Foxborough', 'Brooklyn']
 
@@ -82,11 +82,9 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
 
-  // === ROLE 1: fetch live events on load, with automatic mock fallback ===
-  // See src/services/eventsApi.js — tries Ticketmaster first, falls back
-  // to mockEvents internally if the live call fails. App.jsx just renders
-  // whatever comes back, without needing to know which source it was.
-  const { events: apiEvents, loading: apiLoading, fetchEvents } = useEvents()
+  // Load normalized events through the Flask API; the API service exposes
+  // an explicit sample-data fallback and error notice if live data is down.
+  const { events: apiEvents, loading: apiLoading, error: apiError, fetchEvents } = useEvents()
   // Events added in the admin portal are listed first, ahead of the live/sample events.
   const { events: adminEvents } = useAdminEvents()
   // Skip API/sample events that are already in the admin list (same id), so nothing shows twice.
@@ -100,15 +98,20 @@ function App() {
     localStorage.setItem('city', city)
   }, [city])
 
-  // City and category filters ask the API, not just the events already loaded.
+  // Search and filters query the Flask API. Debounce text input to avoid one
+  // upstream Ticketmaster request for every keystroke.
   useEffect(() => {
-    fetchEvents({
-      city,
-      category: category === 'all' ? undefined : category,
-      startDate,
-      endDate,
-    })
-  }, [fetchEvents, city, category, startDate, endDate])
+    const timer = window.setTimeout(() => {
+      fetchEvents({
+        city,
+        category: category === 'all' ? undefined : category,
+        startDate,
+        endDate,
+        keyword: query,
+      })
+    }, 400)
+    return () => window.clearTimeout(timer)
+  }, [fetchEvents, city, category, startDate, endDate, query])
 
   const handleOpenModal = (event) => {
     setSelectedEvent(event)
@@ -122,9 +125,6 @@ function App() {
 
   // Toggle the saved state of an event by its ID. If the event is already saved, remove it from the saved list; otherwise, add it to the saved list.
 
-  // NEW CHANGE: Replaced mockEvents with apiEvents to get the data from API
-  // TODO: replace mockEvents with Ticketmaster results (map through normalizeEvent),
-  // passing `query` as the API keyword instead of filtering locally.
 
   const categories = uniqueOptions(allEvents, 'category')
   const cities = uniqueOptions([...allEvents, ...CITY_OPTIONS.map((c) => ({ city: c }))], 'city')
@@ -170,7 +170,7 @@ function App() {
       <NavBar />
       <InstallPrompt />
       <main className="app">
-        <h1 className="visually-hidden">Group2 events</h1>
+        <h1 className="visually-hidden">CityPulse events</h1>
         <section className="filters" aria-label="Filter events">
           <div className="filters__row">
             <SearchBar
@@ -206,6 +206,11 @@ function App() {
             startDate={startDate} setStartDate={setStartDate}
             endDate={endDate} setEndDate={setEndDate} filtered={events} clearFilters={clearFilters} />
         </section>
+        {apiError && (
+          <p className="events-fallback-notice" role="status">
+            {apiError}
+          </p>
+        )}
         <FeaturedBanner
           event={nextEvent}
           onSelect={handleOpenModal}

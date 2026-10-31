@@ -13,7 +13,7 @@ function NavBar({ categories, category, onCategoryChange }) {
     <header className="nav">
 
       <Link className="nav__brand" to="/">
-        <img className="nav__logo" src="/group2-logo.jpg" alt="" width="68" height="68" />
+        <img className="nav__logo" src="/citypulse-mark.svg" alt="" width="68" height="68" />
         CityPulse
       </Link>
 

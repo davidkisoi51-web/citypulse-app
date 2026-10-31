@@ -390,3 +390,37 @@
     flex: 1 1 100%;
   }
 }
+
+.pay__stk {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.pay__or {
+  text-align: center;
+  margin: 0.25rem 0 0;
+}
+
+.pay__stk-btn:disabled {
+  opacity: 0.85;
+  cursor: wait;
+}
+
+.pay__spinner {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.5rem;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  vertical-align: -0.15em;
+  animation: pay-spin 0.8s linear infinite;
+}
+
+@keyframes pay-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

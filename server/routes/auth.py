@@ -1,8 +1,9 @@
 """Registration and JWT login endpoints."""
-import random
-from datetime import timedelta, datetime
+import secrets
+from datetime import timedelta, datetime, timezone
 
 from flask import Blueprint, jsonify, request
+from services.auth_rate_limiter import check_rate_limit, RateLimitBackendError
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 
 from auth import require_user
@@ -17,35 +18,74 @@ auth_bp = Blueprint("auth", __name__)
 def public_user(user):
     return {"id": user.id, "name": user.name, "email": user.email}
 
-def send_fake_email(to, code):
-    print("\n" + "=" * 40)
-    print(f"Sending fake email to {to}")
-    print(f"Your verification code is: {code}")
-    print("=" * 40 + "\n")
+
+def generate_code():
+    """Generate a cryptographically secure five-digit code."""
+    return str(secrets.randbelow(90000) + 10000)
+
+
+def code_is_expired(expires_at):
+    """Treat missing expiry timestamps as expired."""
+    if expires_at is None:
+        return True
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    return datetime.now(timezone.utc) >= expires_at
+
+
+def enforce_rate_limit(scope, email, max_attempts, window_seconds):
+    """Return a response when limited or when the database cannot enforce limits."""
+    try:
+        allowed, retry_after = check_rate_limit(
+            scope, email, max_attempts, window_seconds
+        )
+    except RateLimitBackendError:
+        return jsonify(error={
+            "code": "rate_limit_unavailable",
+            "message": "Authentication is temporarily unavailable. Please try again."
+        }), 503
+
+    if not allowed:
+        response = jsonify(error={
+            "code": "rate_limited",
+            "message": "Too many attempts. Please try again later.",
+            "retry_after": retry_after,
+        })
+        response.headers["Retry-After"] = str(retry_after)
+        return response, 429
+
+    return None
+
 
 @auth_bp.post("/register")
 def register():
-    data = request.get_json(silent=True) or {}
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        data = {}
     name = data.get("name", "").strip() if isinstance(data.get("name"), str) else ""
     email = data.get("email", "").strip().lower() if isinstance(data.get("email"), str) else ""
     password = data.get("password")
     if not name or not email or not isinstance(password, str) or len(password) < 8:
         return jsonify(error={"code": "validation_error", "message": "Name, email, and a password of at least 8 characters are required."}), 422
     if User.query.filter(User.email == email).first():
-        return jsonify(error={"message": "An account with that email already exists. Please login."})
-    code = str(random.randint(10000, 99999))
+        return jsonify(error={
+            "code": "account_exists",
+            "message": "An account with that email already exists. Please login."
+        }), 409
+    code = generate_code()
     user = User(name=name, email=email, password_hash="")
     user.set_password(password)
     user.verification_code = code
-    user.code_expires_at = datetime.utcnow() + timedelta(minutes=5)
+    user.code_expires_at = datetime.now(timezone.utc) + timedelta(minutes=5)
     user.is_verified = False
     db.session.add(user)
     db.session.commit()
-    send_fake_email(email, code)
     try:
-        send_verification_email(email, code, email.split('@')[0])
+        sent = send_verification_email(email, code, email.split('@')[0])
+        if not sent:
+            print(f"[VERIFICATION EMAIL] Delivery failed for {email}")
     except Exception as e:
-        print(f"(real service skipped: {e})")
+        print(f"[VERIFICATION EMAIL] Delivery error for {email}: {e}")
     return jsonify(data={
         "message": "Verification code sent to email", 
         "need_verification": True,
@@ -54,12 +94,19 @@ def register():
 
 @auth_bp.post("/verify-email")
 def verify_email():
-    data = request.get_json(silent=True) or {}
-    email = data.get("email", "").strip().lower() 
-    code = data.get("code", "").strip()
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        data = {}
+    email = data.get("email", "").strip().lower() if isinstance(data.get("email"), str) else ""
+    code = data.get("code", "").strip() if isinstance(data.get("code"), str) else ""
     
     if not email or not code:
         return jsonify(error={"code": "validation_error", "message": "Email and verification code are required."}), 422
+
+    limited = enforce_rate_limit("verify_email", email, 5, 600)
+    if limited is not None:
+        return limited
+
     user = User.query.filter_by(email=email).first()
     if user is None:
         return jsonify(error={"code": "not_found", "message": "User not found."}), 404
@@ -67,7 +114,7 @@ def verify_email():
         return jsonify(error={"message": "Account already verified. please log in"}), 400
     if user.verification_code != code:
         return jsonify(error={"code": "invalid_code", "message": "Invalid verification code."}), 400
-    if user.code_expires_at and datetime.utcnow() > user.code_expires_at:
+    if code_is_expired(user.code_expires_at):
         return jsonify(error={"code": "expired_code", "message": "Verification code has expired, Register again."}), 400
     user.is_verified = True
     user.verification_code = None
@@ -75,83 +122,202 @@ def verify_email():
     db.session.commit()
     try:
         name = getattr(user, 'name', None) or getattr(user, 'username', 'there')
-        send_welcome_email(user.email, name)
+        sent = send_welcome_email(user.email, name)
+        if not sent:
+            print(f"[WELCOME EMAIL] Delivery failed for {email}")
     except Exception as e:
-        print(f"([WELCOME EMAIL] To: {email} (fallback print, real failed: {e})")
+        print(f"[WELCOME EMAIL] Delivery error for {email}: {e}")
     return jsonify(message="Email verified successfully"), 200
 
 @auth_bp.post("/login") 
 def login():
-    data = request.get_json(silent=True) or {}
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        data = {}
     email = data.get("email", "").strip().lower() if isinstance(data.get("email"), str) else ""
     password = data.get("password")
+
     if not email or not isinstance(password, str):
-        return jsonify(error={"code": "validation_error", "message": "Email and password are required."}), 400
+        return jsonify(error={
+            "code": "validation_error",
+            "message": "Email and password are required."
+        }), 422
+
     user = User.query.filter_by(email=email).first()
+
     if user is None or not user.password_check(password):
-        return jsonify(error={"code": "unauthorized", "message": "Invalid email or password."}), 401
-    token = create_access_token(identity=str(user.id), expires_delta=timedelta(hours=3))
-    return jsonify(data={"user": public_user(user), "token": token}), 200
+        limited = enforce_rate_limit("login", email, 10, 900)
+        if limited is not None:
+            return limited
+
+        return jsonify(error={
+            "code": "unauthorized",
+            "message": "Invalid email or password."
+        }), 401
+
+    if not user.is_verified:
+        return jsonify(error={
+            "code": "email_not_verified",
+            "message": "Please verify your email before logging in."
+        }), 403
+
+    token = create_access_token(
+        identity=str(user.id),
+        expires_delta=timedelta(hours=1)
+    )
+
+    return jsonify(data={
+        "user": public_user(user),
+        "token": token
+    }), 200
 
 @auth_bp.post("/forgot-password")
 def forgot_password():
-    data = request.get_json(silent=True) or {}
-    email = data.get("email", "").strip().lower() 
-    user = User.query.filter_by(email=email).first()
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        data = {}
+
+    raw_email = data.get("email")
+    email = raw_email.strip().lower() if isinstance(raw_email, str) else ""
+
     if not email:
-        return jsonify(error={"code": "validation_error", "message": "Email is required."}), 400
+        return jsonify(error={
+            "code": "validation_error",
+            "message": "Email is required."
+        }), 422
+
+    limited = enforce_rate_limit("forgot_password", email, 3, 3600)
+    if limited is not None:
+        return limited
+
     user = User.query.filter_by(email=email).first()
-    if user is None:
-        return jsonify(error={"code": "not_found", "message": "User not found."}), 404
-    code = str(random.randint(10000, 99999))
-    user.reset_code = code
-    user.reset_expires_at = datetime.utcnow() + timedelta(minutes=5)
-    db.session.commit()
-    try:
-        from services.email_service import send_password_reset_email
-        name = getattr(user, 'name', None) or getattr(user, 'username', 'there')
-        send_password_reset_email(user.email, code, name=name)
-    except Exception as e:
-       print(f"(reset email failed: {e})")
-    send_fake_email(email, code)
-    return jsonify(data={"message": "Reset code sent to email"}), 200
+
+    # Use the same response whether or not the account exists.
+    if user is not None:
+        code = generate_code()
+        user.reset_code = code
+        user.reset_expires_at = datetime.now(timezone.utc) + timedelta(minutes=5)
+        db.session.commit()
+
+        try:
+            from services.email_service import send_password_reset_email
+            name = getattr(user, "name", None) or "there"
+            sent = send_password_reset_email(user.email, code, name=name)
+            if not sent:
+                print(f"[PASSWORD RESET] Email delivery failed for {email}")
+        except Exception as e:
+            print(f"[PASSWORD RESET] Email error: {e}")
+
+    return jsonify(data={
+        "message": "If an account exists for that email, a reset code has been sent."
+    }), 200
 
 @auth_bp.post("/verify-reset-code")
 def verify_reset_code():
-    data = request.get_json(silent=True) or {}
-    email = data.get("email", "").strip().lower()
-    code = data.get("code", "").strip()
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        data = {}
+
+    raw_email = data.get("email")
+    raw_code = data.get("code")
+    email = raw_email.strip().lower() if isinstance(raw_email, str) else ""
+    code = raw_code.strip() if isinstance(raw_code, str) else ""
+
+    if not email or not code:
+        return jsonify(error={
+            "code": "validation_error",
+            "message": "Email and reset code are required."
+        }), 422
+
+    limited = enforce_rate_limit("reset_code", email, 5, 600)
+    if limited is not None:
+        return limited
+
     user = User.query.filter_by(email=email).first()
-    if not user or user.reset_code != code:
-        return jsonify(error={"code": "invalid_code", "message": "Invalid reset code."}), 400
-    if user.reset_expires_at and datetime.utcnow() > user.reset_expires_at:
-        return jsonify(error={"code": "expired_code", "message": "Reset code has expired."}), 400
-    return jsonify(data={"message": "Code Verified."}), 200
+
+    if user is None or user.reset_code != code:
+        return jsonify(error={
+            "code": "invalid_code",
+            "message": "Invalid reset code."
+        }), 400
+
+    if code_is_expired(user.reset_expires_at):
+        return jsonify(error={
+            "code": "expired_code",
+            "message": "Reset code has expired. Request a new one."
+        }), 400
+
+    return jsonify(data={"message": "Code verified."}), 200
 
 @auth_bp.post("/reset-password")
 def reset_password():
-    data = request.get_json(silent=True) or {}
-    email = data.get("email", "").strip().lower() 
-    new_password = data.get("new_password", "")
-    confirm_password = data.get("confirm_password", "")
-    if len(new_password) < 8:
-        return jsonify(error={"code": "validation_error", "message": "Password must be at least have 8 characters."}), 400
-    if not new_password or new_password != confirm_password:
-        return jsonify(error={"code": "validation_error", "message": "Passwords do not match."}), 400
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        data = {}
+
+    raw_email = data.get("email")
+    raw_code = data.get("code")
+    new_password = data.get("new_password")
+    confirm_password = data.get("confirm_password")
+
+    email = raw_email.strip().lower() if isinstance(raw_email, str) else ""
+    code = raw_code.strip() if isinstance(raw_code, str) else ""
+
+    if not email or not code:
+        return jsonify(error={
+            "code": "validation_error",
+            "message": "Email and reset code are required."
+        }), 400
+
+    if not isinstance(new_password, str) or len(new_password) < 8:
+        return jsonify(error={
+            "code": "validation_error",
+            "message": "Password must be at least 8 characters long."
+        }), 400
+
+    if not isinstance(confirm_password, str) or new_password != confirm_password:
+        return jsonify(error={
+            "code": "validation_error",
+            "message": "Passwords do not match."
+        }), 400
+
+    limited = enforce_rate_limit("reset_code", email, 5, 600)
+    if limited is not None:
+        return limited
+
     user = User.query.filter_by(email=email).first()
-    if not user:
-        return jsonify(error={"code": "not_found", "message": "User not found."}), 404
+
+    if user is None or user.reset_code != code:
+        return jsonify(error={
+            "code": "invalid_code",
+            "message": "Invalid reset code."
+        }), 400
+
+    if code_is_expired(user.reset_expires_at):
+        return jsonify(error={
+            "code": "expired_code",
+            "message": "Reset code has expired. Request a new one."
+        }), 400
+
     user.set_password(new_password)
+
+    # Consume the code so it cannot be reused.
     user.reset_code = None
     user.reset_expires_at = None
     db.session.commit()
+
     try:
         from services.email_service import send_password_changed_email
-        name = getattr(user, 'name', None) or getattr(user, 'username', 'there')
-        send_password_changed_email(user.email, name)
+        name = getattr(user, "name", None) or "there"
+        sent = send_password_changed_email(user.email, name)
+        if not sent:
+            print(f"[PASSWORD CHANGED] Notification email failed for {email}")
     except Exception as e:
-        print(f"(password changed email failed: {e})")
-    return jsonify(data={"message": "Password reset successfully, login now."}), 200
+        print(f"[PASSWORD CHANGED] Notification email error: {e}")
+
+    return jsonify(data={
+        "message": "Password reset successfully. Please log in."
+    }), 200
 
 @auth_bp.get("/tickets")
 def tickets(): 

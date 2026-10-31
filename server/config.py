@@ -30,3 +30,12 @@ class Config:
     #DEV_AUTH_STUB = os.getenv("DEV_AUTH_STUB", "false").lower() == "true"
     DEV_AUTH_USER_ID = int(os.getenv("DEV_AUTH_USER_ID", "1"))
     TICKETMASTER_API_KEY = os.getenv("TICKETMASTER_API_KEY")
+    DEFAULT_EVENT_CITY = os.getenv("DEFAULT_EVENT_CITY", "Nairobi")
+    EVENTS_COUNTRY_CODE = os.getenv("EVENTS_COUNTRY_CODE", "KE")
+    MPESA_CONSUMER_KEY = os.getenv("MPESA_CONSUMER_KEY")
+    MPESA_CONSUMER_SECRET = os.getenv("MPESA_CONSUMER_SECRET")
+    MPESA_SHORTCODE = os.getenv("MPESA_SHORTCODE", "174379")
+    MPESA_PASSKEY = os.getenv("MPESA_PASSKEY")
+    MPESA_CALLBACK_URL = os.getenv("MPESA_CALLBACK_URL")
+    MPESA_CALLBACK_SECRET = os.getenv("MPESA_CALLBACK_SECRET")
+    MPESA_BASE_URL = os.getenv("MPESA_BASE_URL", "https://sandbox.safaricom.co.ke")

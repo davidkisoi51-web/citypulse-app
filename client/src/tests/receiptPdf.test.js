@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { buildReceiptPdf, newReceiptNumber } from '../payment/receiptPdf.js'
 
 const pdf = buildReceiptPdf({
-  title: 'Group2',
+  title: 'CityPulse',
   subtitle: 'Ticket payment receipt',
   rows: [['Event', 'Bien (Live)'], ['---'], ['Total paid', 'Ksh 8,000 – VIP'], ['M-PESA code', 'SJK4H7QW2P']],
   footer: ['Keep this receipt.'],
@@ -62,5 +62,5 @@ test('receiptPdfForPurchase includes the purchase details', async () => {
   for (const s of ['(G2-ABC)', '(Heidi Temba)', '(Bien)', '(VIP)', '(Ksh 8,000)', '(SJK4H7QW2P)', '(0702 270 346)', '(Nyayo Stadium, Nairobi)']) {
     assert.ok(out.includes(s), s)
   }
-  assert.equal(receiptFileName(purchase), 'Group2-receipt-G2-ABC.pdf')
+  assert.equal(receiptFileName(purchase), 'CityPulse-receipt-G2-ABC.pdf')
 })

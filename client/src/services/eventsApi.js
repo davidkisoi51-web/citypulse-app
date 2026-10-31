@@ -8,8 +8,7 @@ const BASE_URL = (
   'http://localhost:5001/api'
 ).replace(/\/$/, '')
 
-
-// Increase from 10000 to 45000 (45 seconds) to accommodate Render cold starts
+// Increase from 10000 to 52000 (52 seconds) to accommodate Render cold starts
 const REQUEST_TIMEOUT_MS = 52000
 
 export async function fetchEvents({ city, category, startDate, endDate, keyword } = {}) {
@@ -58,12 +57,12 @@ function filterMockEvents({ city, category, startDate, endDate, keyword }) {
       [event.name, event.venue, event.city, event.category]
         .filter(Boolean)
         .some((field) => field.toLowerCase().includes(keyword.toLowerCase()))
-    //const matchesStart = !startDate || event.date >= startDate
+
     const matchesStart = event.date >= (startDate || todayLocal())
     const matchesEnd = !endDate || event.date <= endDate
 
     return matchesCity && matchesCategory && matchesKeyword && matchesStart && matchesEnd
   })
 }
-console.log('Current BASE_URL:', BASE_URL)
 
+console.log('Current BASE_URL:', BASE_URL)

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import NavBar from '../components/NavBar'
 import { useAuth } from '../auth/authContext'
@@ -14,6 +14,13 @@ import {
 import { newReceiptNumber } from '../payment/receiptPdf'
 import { downloadPdf, receiptFileName, receiptPdfForPurchase } from '../payment/receipt'
 import { recordPurchase } from '../payment/purchases'
+import {
+  STK_POLL_MS,
+  getPayment,
+  interpretPayment,
+  isValidKenyanPhone,
+  startStkPush,
+} from '../payment/paymentsApi'
 import { formatDate } from '../utils/formatEvent'
 import './PaymentPage.css'
 
@@ -33,6 +40,83 @@ function PaymentPage() {
   const [purchase, setPurchase] = useState(null)
   const [downloaded, setDownloaded] = useState(false)
   const [copied, setCopied] = useState(false)
+
+    // M-PESA Express (STK push) state
+  const [phone, setPhone] = useState('')
+  const [stkState, setStkState] = useState('idle') // idle | sending | waiting | failed | timeout
+  const [stkMessage, setStkMessage] = useState('')
+  const [paymentId, setPaymentId] = useState(null)
+  // Always points at the latest completePurchase, so the poller can call it when payment is confirmed.
+  const completeRef = useRef(null)
+
+  // While waiting for the customer to enter their PIN, ask the server for the status every few seconds.
+  useEffect(() => {
+    if (stkState !== 'waiting' || !paymentId) return undefined
+    const startedAt = Date.now()
+    let stopped = false
+    const check = async () => {
+      try {
+        const payment = await getPayment(paymentId)
+        if (stopped) return
+        const result = interpretPayment(payment, Date.now() - startedAt)
+        if (result.state === 'waiting') return
+        stopped = true
+        clearInterval(timer)
+        if (result.state === 'paid') {
+          completeRef.current?.(payment.receipt, {
+            paidTo: 'M-PESA Express (STK Push)',
+            paymentId: payment.id,
+          })
+        } else {
+          setStkState(result.state)
+          setStkMessage(result.message)
+        }
+      } catch {
+        // A network blip: keep trying until the timeout.
+      }
+    }
+    const timer = setInterval(check, STK_POLL_MS)
+    return () => {
+      stopped = true
+      clearInterval(timer)
+    }
+  }, [stkState, paymentId])
+
+    const option = options.find((o) => o.id === optionId) ?? options[0]
+  const total = option ? option.price * quantity : null
+  const currency = event?.currency || 'KES'
+
+  // Confirms the payment: shows the success screen and logs the purchase for the admin portal.
+  const completePurchase = (mpesaCode, extra = {}) => {
+    const record = {
+      receiptNo: newReceiptNumber(),
+      paidAt: new Date().toISOString(),
+      buyerName: user.name,
+      buyerEmail: user.email,
+      eventId: event.id,
+      eventName: event.name,
+      eventDate: event.date,
+      eventTime: event.time,
+      eventVenue: event.venue,
+      eventCity: event.city,
+      ticketType: option.label,
+      quantity,
+      unitPrice: option.price,
+      total,
+      currency,
+      method: mpesaCode === 'FREE' ? 'Free' : 'M-PESA',
+      mpesaCode: mpesaCode === 'FREE' ? null : mpesaCode,
+      paidTo: mpesaCode === 'FREE' ? null : MPESA_NUMBER_DISPLAY,
+      ...extra,
+    }
+    recordPurchase(record)
+    setPurchase(record)
+  }
+
+  // Keep the ref pointing at the latest completePurchase (updated after each render, never during it).
+  useEffect(() => {
+    completeRef.current = completePurchase
+  })
 
 
   const [values, setValues] = useState({event_Id : eventId, eventName :"", eventDate :"",eventVenue :"", eventCity :"", ticketType :"",quantity: 0, unitPrice: 0, paidAt: ""})
@@ -61,9 +145,6 @@ function PaymentPage() {
     )
   }
 
-  const option = options.find((o) => o.id === optionId) ?? options[0]
-  const total = option ? option.price * quantity : null
-  const currency = event.currency || 'KES'
   const summary = (
     <div className="pay__event">
       {event.image && <img className="pay__thumb" src={event.image} alt="" />}
@@ -151,32 +232,28 @@ function PaymentPage() {
     }
   }
 
-  // Confirms the payment: shows the success screen and logs the purchase for the admin portal.
-   const completePurchase = (mpesaCode) => {
-      const record = {
-      receiptNo: newReceiptNumber(),
-      //paidAt: new Date().toISOString(),
-      buyerName: user.name,
-      buyerEmail: user.email,
-      eventId: event.id,
-      eventName: event.name,
-      eventDate: event.date,
-      eventTime: event.time,
-      eventVenue: event.venue,
-      eventCity: event.city,
-      ticketType: option.label,
-      quantity,
-      //transferable,
-      unitPrice: option.price,
-      total,
-      currency,
-      method: mpesaCode === 'FREE' ? 'Free' : 'M-PESA',
-      mpesaCode: mpesaCode === 'FREE' ? null : mpesaCode,
-      paidTo: mpesaCode === 'FREE' ? null : MPESA_NUMBER_DISPLAY,
+  const busy = stkState === 'sending' || stkState === 'waiting'
+
+  const handleStkPush = async () => {
+    setStkMessage('')
+    if (!isValidKenyanPhone(phone)) {
+      setStkMessage('Enter a valid Safaricom number, e.g. 0712 345 678.')
+      return
     }
-    setValues(record)
-    recordPurchase(record)
-    setPurchase(record)
+    setStkState('sending')
+    try {
+      const payment = await startStkPush({
+        phone,
+        amount: Math.round(total),
+        eventId: event.id,
+        quantity,
+      })
+      setPaymentId(payment.id)
+      setStkState('waiting')
+    } catch (err) {
+      setStkState('failed')
+      setStkMessage(err.message)
+    }
   }
 
   //handleSaveTicket -> complete purchase, 'FREE', recording the purchase that hsould change
@@ -214,6 +291,7 @@ function PaymentPage() {
                   value={o.id}
                   checked={o.id === option.id}
                   onChange={() => setOptionId(o.id)}
+                  disabled={busy}
                 />
                 <span>{o.label}</span>
                 <span className="pay__option-price">{formatAmount(o.price, currency)}</span>
@@ -224,7 +302,7 @@ function PaymentPage() {
 
         <label className="pay__field">
           <span>Number of tickets</span>
-          <select value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} className="select-chevron">
+          <select value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} className="select-chevron" disabled={busy}>
             {Array.from({ length: MAX_TICKETS }, (_, i) => i + 1).map((n) => (
               <option key={n} value={n}>
                 {n}
@@ -243,6 +321,49 @@ function PaymentPage() {
           </button>
         ) : (
           <>
+            <div className="pay__stk">
+              <label className="pay__field">
+                <span>M-PESA phone number</span>
+                <input
+                  type="tel"
+                  inputMode="tel"
+                  value={phone}
+                  onChange={(e) => {
+                    setPhone(e.target.value)
+                    setStkMessage('')
+                    if (stkState === 'failed' || stkState === 'timeout') setStkState('idle')
+                  }}
+                  placeholder="e.g. 0712345678"
+                  autoComplete="tel"
+                  disabled={busy}
+                  aria-invalid={stkMessage ? true : undefined}
+                />
+              </label>
+              {stkMessage && (
+                <p className="pay__error" role="alert">
+                  {stkMessage}
+                </p>
+              )}
+              <button type="button" className="pay__primary pay__stk-btn" onClick={handleStkPush} disabled={busy}>
+                {busy ? (
+                  <>
+                    <span className="pay__spinner" aria-hidden="true" /> Confirming payment…
+                  </>
+                ) : stkState === 'failed' || stkState === 'timeout' ? (
+                  'Try again'
+                ) : (
+                  'Initiate M-PESA STK Push'
+                )}
+              </button>
+              {stkState === 'waiting' && (
+                <p className="pay__meta" role="status">
+                  Check your phone and enter your M-PESA PIN to approve {formatAmount(total, currency)}.
+                </p>
+              )}
+              <p className="pay__meta pay__or">Or pay manually:</p>
+            </div>
+
+
             <div className="pay__mpesa">
               <p className="pay__mpesa-title">
                 <span className="pay__mpesa-badge">M-PESA</span> Lipa na M-PESA

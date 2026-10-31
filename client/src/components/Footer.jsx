@@ -6,9 +6,7 @@ function Footer () {
         <footer className="footer">
             <div className="footer__content">
                 <div className="footer__brand">
-                    <span className="footer__logo" aria-hidden="true">
-                        ●
-                    </span>
+                    <img className="footer__logo" src="/citypulse-mark.svg" alt="" width="36" height="36" />
                     <span>CityPulse</span>
                 </div>
 

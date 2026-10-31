@@ -6,7 +6,7 @@ import { formatDate } from '../utils/formatEvent.js'
 export function receiptPdfForPurchase(p) {
   const free = p.method === 'Free'
   return buildReceiptPdf({
-    title: 'Group2',
+    title: 'CityPulse',
     subtitle: 'Ticket payment receipt',
     rows: [
       ['Receipt no.', p.receiptNo],
@@ -27,12 +27,12 @@ export function receiptPdfForPurchase(p) {
     ],
     footer: [
       'Please keep this receipt and show it at the venue entrance.',
-      'Group2 events - demo receipt (payments are not verified).',
+      'CityPulse events - demo receipt (payments are not verified).',
     ],
   })
 }
 
-export const receiptFileName = (p) => `Group2-receipt-${p.receiptNo}.pdf`
+export const receiptFileName = (p) => `CityPulse-receipt-${p.receiptNo}.pdf`
 
 // Browser-only: saves the PDF via a temporary download link.
 export function downloadPdf(pdf, fileName) {

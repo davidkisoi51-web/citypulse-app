@@ -90,6 +90,7 @@ class SavedEvent(db.Model):
     note = db.Column(db.Text)
     status = db.Column(db.String(20), nullable=False, default="interested")
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utc_now)
+    reminder_sent_at = db.Column(db.DateTime(timezone=True), nullable=True)
 
     plan = db.relationship("Plan", back_populates="saved_events")
 
@@ -220,4 +221,59 @@ class TicketsSchema(Schema):
         no_of_tickets = fields.Int()
         transferable = fields.Boolean()
         user_id = fields.Nested(UserSchema(exclude = ("tickets",)))
+class Payment(db.Model):
+    __tablename__ = "payments"
 
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, nullable=False, index=True)
+    event_id = db.Column(db.String(64))
+    quantity = db.Column(db.Integer, nullable=False, default=1)
+    amount = db.Column(db.Integer, nullable=False)
+    phone = db.Column(db.String(15), nullable=False)
+    status = db.Column(db.String(16), nullable=False, default="pending")  # pending | paid | failed | timeout
+    merchant_request_id = db.Column(db.String(64))
+    checkout_request_id = db.Column(db.String(64), unique=True, index=True)
+    mpesa_receipt = db.Column(db.String(32))
+    result_code = db.Column(db.Integer)
+    result_desc = db.Column(db.String(255))
+    created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(
+        db.DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "status": self.status,
+            "amount": self.amount,
+            "phone": self.phone,
+            "eventId": self.event_id,
+            "quantity": self.quantity,
+            "receipt": self.mpesa_receipt,
+            "message": self.result_desc,
+            "createdAt": self.created_at.isoformat() if self.created_at else None,
+        }
+
+
+
+
+class AuthRateLimit(db.Model):
+    """Persistent, account-keyed authentication rate-limit counters."""
+
+    __tablename__ = "auth_rate_limits"
+    __table_args__ = (
+        db.UniqueConstraint(
+            "scope",
+            "key_hash",
+            name="uq_auth_rate_limits_scope_key",
+        ),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    scope = db.Column(db.String(40), nullable=False)
+    key_hash = db.Column(db.String(64), nullable=False)
+    window_started_at = db.Column(db.DateTime(timezone=True), nullable=False)
+    attempts = db.Column(db.Integer, nullable=False, default=1)
+    updated_at = db.Column(db.DateTime(timezone=True), nullable=False)

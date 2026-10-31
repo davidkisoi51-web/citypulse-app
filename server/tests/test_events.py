@@ -86,7 +86,7 @@ def test_list_events_missing_api_key(client):
     client.application.config["TICKETMASTER_API_KEY"] = None
     try:
         response = client.get("/api/events")
-        assert response.status_code == 500
+        assert response.status_code == 503
         assert response.json["error"]["code"] == "missing_api_key"
     finally:
         client.application.config["TICKETMASTER_API_KEY"] = original
@@ -104,3 +104,26 @@ def test_list_events_defaults_start_to_now(client):
         sent = mock_get.call_args.kwargs["params"]["startDateTime"]
         sent_dt = datetime.strptime(sent, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
         assert before <= sent_dt <= after
+
+def test_list_events_uses_default_city(client):
+    with patch("ticketmaster.requests.get") as mock_get:
+        mock_get.return_value.ok = True
+        mock_get.return_value.json.return_value = {"_embedded": {"events": []}}
+        client.get("/api/events")
+        assert mock_get.call_args.kwargs["params"]["city"] == "Nairobi"
+
+
+def test_list_events_rejects_invalid_date_before_upstream_call(client):
+    with patch("ticketmaster.requests.get") as mock_get:
+        response = client.get("/api/events?startDate=not-a-date")
+        assert response.status_code == 400
+        assert response.json["error"]["code"] == "invalid_date"
+        mock_get.assert_not_called()
+
+
+def test_list_events_all_cities_when_city_is_explicitly_empty(client):
+    with patch("ticketmaster.requests.get") as mock_get:
+        mock_get.return_value.ok = True
+        mock_get.return_value.json.return_value = {"_embedded": {"events": []}}
+        client.get("/api/events?city=")
+        assert "city" not in mock_get.call_args.kwargs["params"]

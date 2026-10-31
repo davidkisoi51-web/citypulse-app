@@ -4,6 +4,7 @@ import { isPastEvent } from '../utils/pastEvent';
 import TicketLink from './TicketLink';
 import { paysOnSite } from '../payment/paymentUtils';
 import SaveToPlan from '../plans/SaveToPlan';
+import { downloadIcs, googleCalendarUrl } from '../utils/calendarLinks';
 import './EventDetailModal.css';
 
 const FOCUSABLE_SELECTOR =
@@ -69,6 +70,7 @@ export default function EventDetailModal({ isOpen, onClose, event }) {
   const formattedDate = formatDate(date, time);
   const price = formatPrice(priceMin, priceMax, currency);
   const past = isPastEvent(event);
+  const googleCalendarLink = googleCalendarUrl(event);
 
   const locationQuery = [venue, city].filter(Boolean).join(', ');
   const mapsUrl = locationQuery
@@ -113,6 +115,17 @@ export default function EventDetailModal({ isOpen, onClose, event }) {
             <p>📅 {formattedDate}</p>
             {price && <span className="price-badge">🏷️ {price}</span>}
           </div>
+
+          {!past && googleCalendarLink && (
+            <section className="calendar-actions" aria-label="Add event to calendar">
+              <button type="button" className="calendar-action" onClick={() => downloadIcs(event)}>
+                <span aria-hidden="true">▦</span> Download calendar file (.ics)
+              </button>
+              <a className="calendar-action calendar-action--google" href={googleCalendarLink} target="_blank" rel="noopener noreferrer">
+                <span aria-hidden="true">＋</span> Add to Google Calendar
+              </a>
+            </section>
+          )}
 
           <hr className="divider" />
 
