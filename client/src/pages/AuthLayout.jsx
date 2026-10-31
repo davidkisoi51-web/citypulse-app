@@ -24,7 +24,7 @@ function AuthLayout({ title, subtitle, notice, children, footer }) {
         {footer && <p className="auth__footer">{footer}</p>}
       </section>
 
-      <Link className="auth__back" to="/">
+      <Link className="auth__back" to="/events">
         ← Back to events
       </Link>
     </main>

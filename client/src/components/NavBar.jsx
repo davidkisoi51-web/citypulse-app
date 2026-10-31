@@ -12,10 +12,19 @@ function NavBar({ categories, category, onCategoryChange }) {
   return (
     <header className="nav">
 
-      <Link className="nav__brand" to="/">
-        <img className="nav__logo" src="/citypulse-mark.svg" alt="" width="68" height="68" />
-        CityPulse
+      <Link className="nav__brand" to="/" aria-label="CityPulse home">
+        <img className="nav__logo" src="/citypulse-mark.svg" alt="" width="48" height="48" />
       </Link>
+
+      {/* Centre links; each is underlined on its own page. */}
+      <nav className="nav__links" aria-label="Main">
+        <NavLink className="nav__link" to="/" end>
+          What's on
+        </NavLink>
+        <NavLink className="nav__link" to="/events">
+          Events
+        </NavLink>
+      </nav>
 
     
       {categories && (

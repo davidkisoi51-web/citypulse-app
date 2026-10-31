@@ -22,7 +22,7 @@ function MyTicketsPage() {
     <>
       <NavBar />
       <main className="pay pay--wide">
-        <Link className="pay__back" to="/">
+        <Link className="pay__back" to="/events">
           ← Back to events
         </Link>
         <h1 className="pay__title">My tickets</h1>
@@ -31,7 +31,7 @@ function MyTicketsPage() {
         {mine.length === 0 ? (
           <section className="pay__card">
             <p>You haven't bought any tickets yet.</p>
-            <Link className="pay__primary" to="/">
+            <Link className="pay__primary" to="/events">
               Browse events
             </Link>
           </section>

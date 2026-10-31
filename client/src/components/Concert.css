@@ -1,0 +1,146 @@
+/* Concert scenery for the landing page (ConcertBackdrop.jsx). */
+
+/* Behind the whole page, like CursorGlow: under the content, above the page gradient. */
+.concert-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Low stage haze that slowly breathes. */
+.concert-backdrop__haze {
+  position: absolute;
+  inset: 30% -10% -10%;
+  background:
+    radial-gradient(50% 40% at 30% 60%, rgba(255, 107, 91, 0.12), transparent 70%),
+    radial-gradient(45% 35% at 75% 55%, rgba(236, 72, 153, 0.1), transparent 70%);
+  filter: blur(30px);
+  animation: haze 14s ease-in-out infinite alternate;
+}
+
+@keyframes haze {
+  to {
+    transform: translateX(4%) scale(1.08);
+    opacity: 0.7;
+  }
+}
+
+/* A spotlight cone hanging from the top edge, swinging side to side. */
+.concert-beam {
+  position: absolute;
+  top: -40px;
+  width: 220px;
+  height: 115vh;
+  margin-left: -110px;
+  transform-origin: 50% 0;
+  background: linear-gradient(to bottom, rgba(var(--beam), 0.5), rgba(var(--beam), 0.08) 55%, transparent 85%);
+  clip-path: polygon(46% 0, 54% 0, 100% 100%, 0 100%);
+  filter: blur(6px);
+  mix-blend-mode: screen;
+  animation: beam-sweep 8s ease-in-out infinite alternate;
+}
+
+@keyframes beam-sweep {
+  from {
+    transform: rotate(-28deg);
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+  to {
+    transform: rotate(28deg);
+    opacity: 0.6;
+  }
+}
+
+/* Small sparks floating up through the light. */
+.concert-spark {
+  position: absolute;
+  bottom: -10px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #ffd9a8;
+  box-shadow: 0 0 8px 2px rgba(255, 180, 120, 0.7);
+  animation: spark-rise 12s linear infinite;
+}
+
+@keyframes spark-rise {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  50% {
+    transform: translate(20px, -55vh);
+  }
+  90% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-10px, -110vh);
+    opacity: 0;
+  }
+}
+
+/* Equaliser bars under the headline. */
+.equalizer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 4px;
+  height: 34px;
+  margin: 14px auto 0;
+
+  span {
+    width: 5px;
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(to top, var(--button-bg), var(--accent), #fbbf24);
+    transform-origin: bottom;
+    animation: eq-bounce 0.9s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes eq-bounce {
+  from {
+    transform: scaleY(0.15);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .concert-backdrop__haze,
+  .concert-beam,
+  .concert-spark,
+  .equalizer span {
+    animation: none;
+  }
+
+  .concert-spark {
+    display: none;
+  }
+
+  .concert-beam:nth-of-type(odd) {
+    transform: rotate(-14deg);
+  }
+
+  .concert-beam:nth-of-type(even) {
+    transform: rotate(14deg);
+  }
+
+  .equalizer span:nth-child(3n) {
+    transform: scaleY(0.4);
+  }
+
+  .equalizer span:nth-child(3n + 1) {
+    transform: scaleY(0.75);
+  }
+}

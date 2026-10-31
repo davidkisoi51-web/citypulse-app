@@ -3,6 +3,7 @@ import { isPastEvent } from '../utils/pastEvent'
 import TicketLink from './TicketLink'
 import './EventCard.css'
 import HeartButton from './HeartButton'
+import usePointerTilt from '../hooks/usePointerTilt'
 
 function EventCard({ event, onSelect, saved = false, saving = false, onToggleSave }) {
   const { name, url, image, date, time, venue, city, category, priceMin, priceMax, currency } =
@@ -10,6 +11,7 @@ function EventCard({ event, onSelect, saved = false, saving = false, onToggleSav
   const price = formatPrice(priceMin, priceMax, currency)
   const location = [venue, city].filter(Boolean).join(', ')
   const past = isPastEvent(event)
+  const tilt = usePointerTilt()
 
   const handleKeyDown = (e) => {
     if (!onSelect) return
@@ -27,6 +29,7 @@ function EventCard({ event, onSelect, saved = false, saving = false, onToggleSav
       role={onSelect ? 'button' : undefined}
       tabIndex={onSelect ? 0 : undefined}
       aria-label={onSelect ? `View details for ${name}` : undefined}
+      {...tilt}
     >
       <div className="event-card__media">
         {image ? (

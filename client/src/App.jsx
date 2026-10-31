@@ -6,6 +6,10 @@ import SearchBar from './components/SearchBar'
 import Footer from './components/Footer'
 import EventDetailModal from './components/EventDetailModal'
 import RecommendedRow from './components/RecommendedRow'
+import EventRing from './components/EventRing'
+import CategoryChips from './components/CategoryChips'
+import CursorGlow from './components/CursorGlow'
+import { ConcertBackdrop, Equalizer } from './components/ConcertBackdrop'
 import { getNextEvent } from './utils/nextEvent'
 import { recommendationReason, recommendEvents } from './utils/recommendations'
 import { SORT_OPTIONS, sortEvents } from './utils/sortEvents'
@@ -13,6 +17,8 @@ import { useEvents } from './utils/useEvents'
 import { useAdminEvents } from './admin/adminEventsContext'
 import { useSavedEvents } from './plans/savedEventsContext'
 import { useState, useEffect, useRef } from 'react'
+import { Link } from 'react-router-dom'
+import { isPastEvent } from './utils/pastEvent'
 import useOnlineStatus from './hooks/useOnlineStatus'
 import OfflinePage  from './pages/OfflinePage'
 import InstallPrompt from './components/InstallPrompt'
@@ -56,7 +62,9 @@ function matchesQuery(event, query) {
 
 
 
-function App() {
+// Two views share the same data: 'home' (the landing page: the 3D ring of what's coming up)
+// and 'events' (filters, featured banner, recommendations and the full grid).
+function App({ view = 'events' }) {
   //call the hook
   const isOnline = useOnlineStatus()
 
@@ -159,10 +167,51 @@ function App() {
     return <OfflinePage />
   }
   // "Recommended for you": based on the categories and cities of saved events. Hidden while
-  // searching or filtering, so it doesn't push the results down.
-  const filtering = Boolean(query.trim() || city || startDate || endDate) || category !== 'all'
+  // searching or filtering, so it doesn't push the results down. The city doesn't count:
+  // there's always one (the default city), so it's where you are, not a search.
+  const filtering = Boolean(query.trim() || startDate || endDate) || category !== 'all'
   const recommended =
     filtering || apiLoading ? [] : recommendEvents(allEvents, savedEvents, { excludeIds: nextEvent ? [nextEvent.id] : [] })
+  // Landing page ring: the next 18 upcoming events in the chosen city, soonest first. It
+  // ignores the search and filters, which live on the Events page.
+  const ringEvents = sortEvents(
+    allEvents.filter((e) => (!city || norm(e.city) === norm(city)) && !isPastEvent(e)),
+    SORT_OPTIONS.dateNearest,
+  ).slice(0, 18)
+
+  if (view === 'home') {
+    return (
+      <>
+        <NavBar />
+        <InstallPrompt />
+        <ConcertBackdrop />
+        <CursorGlow />
+        <main className="app app--home">
+          <section className="home-hero" aria-labelledby="home-title">
+            <h1 id="home-title" className="home-hero__title">
+              CityPulse
+            </h1>
+            <p className="home-hero__text">
+              Concerts, sport, comedy and more{city ? ` in ${city}` : ''}. Tap a poster to see the details.
+            </p>
+            <Equalizer />
+          </section>
+          {apiLoading && !ringEvents.length ? (
+            <p className="home-hero__status" role="status">Loading events…</p>
+          ) : (
+            <EventRing events={ringEvents} onSelect={handleOpenModal} />
+          )}
+          <div className="home-hero__actions">
+            <Link className="home-hero__cta" to="/events">
+              Browse all events →
+            </Link>
+          </div>
+        </main>
+        <Footer />
+        <EventDetailModal isOpen={isModalOpen} onClose={handleCloseModal} event={selectedEvent} />
+      </>
+    )
+  }
 
 
   return (
@@ -227,6 +276,7 @@ function App() {
           onToggleSave={toggleSave}
         />
         <h2 className="app__section-title" ref={resultsRef}>Upcoming events</h2>
+        <CategoryChips categories={categories} value={category} onChange={setCategory} />
         <EventGrid events={events} loading={apiLoading} onEventClick={handleOpenModal} savedEventIds={savedEventIds} savingEventIds={savingEventIds} onToggleSave={toggleSave}/>
 
         {/* Pass onEventClick handler so Role 3 (EventGrid/Cards) can trigger your modal */}
