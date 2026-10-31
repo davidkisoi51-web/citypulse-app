@@ -6,8 +6,12 @@ from flask import Blueprint, jsonify, request
 from services.auth_rate_limiter import check_rate_limit, RateLimitBackendError
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 
+from auth import require_user
+import datetime
+
 from extensions import db
-from models import User
+from models import User, Tickets, TicketsSchema
+
 from services.email_service import send_verification_email, send_welcome_email
 auth_bp = Blueprint("auth", __name__)
 
@@ -314,6 +318,60 @@ def reset_password():
     return jsonify(data={
         "message": "Password reset successfully. Please log in."
     }), 200
+
+@auth_bp.get("/tickets")
+def tickets(): 
+
+    #authentication help!!
+    user_id = 1
+     
+    retrieval = db.session.scalars(db.select(Tickets).where(Tickets.user_id == user_id))
+
+    output = {"data": [each.dict() for each in retrieval]}
+
+    if output["data"] == [] : 
+            return {"msg": "No Tickets available for this user, *Back to Events*"}
+        
+    return jsonify(output)
+
+#make a route for the tranfer tickets to change user_id for a specific ticket (by the ticket_id), 
+# to the given user's (given by email), search user_email and add ticket to their data row.
+@auth_bp.post("/tickets/transfer")
+def transfer_tickets():
+    data = request.get_json() or {}
+    
+
+@auth_bp.post("/tickets")
+#@jwt_required()
+def create_ticket():
+    #not sure how to configure to get the user identity without causing a 422
+    user_identity = 1
+    data = request.get_json() or {}
+    event_id = data.get("eventId")
+    event_name = data["eventName"]
+    event_date = data["eventDate"]
+    event_time = data.get("eventTime")
+    event_venue = data["eventVenue"]
+    event_city = data["eventCity"]
+    ticket_type = data["ticketType"]
+    quantity = data["quantity"]
+    unit_price = data["unitPrice"]
+    transferable = True
+
+    if not event_id or not isinstance(event_time,str):
+        return {"key_error_msg": "please include event_id and/or event_time"}
+
+    ticket = Tickets(user_id = user_identity, event_id = event_id, paid_at = datetime.datetime.now(), event_name = event_name, event_date = event_date, event_time = event_time, event_venue = event_venue ,event_city = event_city, ticket_type = ticket_type, price = unit_price, no_of_tickets = quantity, transferable = transferable)
+    db.session.add(ticket)
+    db.session.commit()
+
+    new_ticket = TicketsSchema().dump(ticket)
+
+    output = {
+        "msg": new_ticket
+    }
+    return jsonify(output)
+
 
 @auth_bp.get("/me")
 @jwt_required()

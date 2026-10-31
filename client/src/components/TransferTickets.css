@@ -1,0 +1,120 @@
+
+.transfer_ticket_btn{
+  display: grid;
+  align-items: center;
+  justify-self: center;
+  height: 42px;
+  font-size: 14px;
+  margin-bottom: 10px;
+  color: var(--text-h);
+  background-color: transparent;
+  border: 1px solid rgb(111, 13, 13);
+  border-radius: 10px;
+  padding: 10px;
+  width: 150px;
+  cursor: pointer;
+
+  @media (max-width: 520px){
+    flex: 1 1 100%;
+  }
+}
+
+.transfer_form{
+  display: flex;
+  background-image: linear-gradient(15deg, rgb(26, 3, 3), rgb(98, 14, 14));
+  flex-direction: column;
+  border: 1px solid rgb(58, 7, 7, 0.5);
+  box-shadow: 15px 14px 7px rgb(66, 11, 11);
+  justify-self: center;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  grid-template-columns: auto;
+  gap: 25px;
+  padding: 35px 0px 35px 0px;
+  border-radius: 16px;
+
+  @media (max-width: 500px){
+    flex: 1 1 100%;
+
+  }
+ 
+}
+
+.transfer_input{
+  
+  display: flex;
+  padding: 11px;
+  justify-self: center;
+  border: 1px solid rgba(255, 255, 255, 0.179) ;
+  border-radius: 10px;
+  width: 285px;
+  height: 20px;
+  background-color: transparent;
+  grid-area: auto;
+  color:white;
+  text-align: center;
+  
+
+}
+.ticket_select{
+  padding: 11px;
+  margin: 30px;
+  background-color: rgb(80, 11, 11);
+  border: 1px solid rgba(255, 255, 255, 0.179);
+  border-radius: 10px;
+  height: 43px;
+  width: 310px;
+  justify-self: center;
+  color: white;
+  cursor: pointer;
+
+}
+
+.select_transfer{
+  display: grid;
+  margin: 10px;
+
+}
+.p_transfer{
+  font-size: 25px;
+  font-weight: 500;
+  color: white;
+}
+
+.back_to_events{
+  display: inline-block;
+  box-sizing: border-box;
+  border-radius: 10px;
+  padding-left: 15px;
+  margin: 15px;
+  font-weight: 500;
+  font-size: 15px;
+  text-align: left;
+  color:var(--accent);
+  
+}
+
+h3{
+    text-align: left;
+    padding-left: 15px;
+    width: 100%;
+    max-width: 560px;
+    margin-top: 0px ;
+    margin-bottom: 2px;
+    margin-left: 15px;
+    color: white;
+    font-weight: 500;
+    font-size: 25px;
+}
+.transfer_desc{
+  text-align: left;
+  padding-left: 15px;
+  padding-bottom: 10px;
+  width: 100%;
+  max-width: 560px;
+  margin-left: 17px;
+  color: grey;
+  font-weight: 500;
+  font-size: 15px;
+}

@@ -13,6 +13,7 @@ import './PaymentPage.css'
 function MyTicketsPage() {
   const { user } = useAuth()
   const [purchases] = useState(() => loadPurchases())
+  
 
   if (!user) return <Navigate to="/login" replace state={{ from: '/my-tickets' }} />
 

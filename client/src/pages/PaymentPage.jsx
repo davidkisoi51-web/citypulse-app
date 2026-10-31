@@ -118,6 +118,9 @@ function PaymentPage() {
     completeRef.current = completePurchase
   })
 
+
+  const [values, setValues] = useState({event_Id : eventId, eventName :"", eventDate :"",eventVenue :"", eventCity :"", ticketType :"",quantity: 0, unitPrice: 0, paidAt: ""})
+
   // Buying tickets needs an account (same rule as "Get tickets").
   if (!user) return <Navigate to="/login" replace state={{ from: `/pay/${eventId}`, eventName: event?.name }} />
 
@@ -253,6 +256,8 @@ function PaymentPage() {
     }
   }
 
+  //handleSaveTicket -> complete purchase, 'FREE', recording the purchase that hsould change
+  //
   const handleSubmit = (e) => {
     e.preventDefault()
     if (free) {

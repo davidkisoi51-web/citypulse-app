@@ -2,6 +2,7 @@
 // localStorage until there's a backend, so it only lists purchases made in this browser.
 
 export const PURCHASES_KEY = 'citypulse.purchases'
+export const API_URL = '/api/auth/tickets'
 
 export function loadPurchases(storage = globalThis.localStorage) {
   try {
@@ -12,15 +13,24 @@ export function loadPurchases(storage = globalThis.localStorage) {
   }
 }
 
-// Adds a purchase (newest first). Returns false if the browser couldn't save it.
-export function recordPurchase(purchase, storage = globalThis.localStorage) {
-  try {
-    storage?.setItem(PURCHASES_KEY, JSON.stringify([purchase, ...loadPurchases(storage)]))
-    return true
-  } catch {
-    return false
-  }
+export function recordPurchase(ticket) {
+
+  fetch(API_URL,{
+    method: "POST",
+    headers: {"Content-Type": "application/json", 
+        "Authorization": `Bearer <token>`},
+    body: JSON.stringify(ticket),
+  })
+    .then(response => {
+      if (!response.ok){ throw new Error ("post request failed")}
+      return response.json()
+    })
+    .then((data)=> {
+      return data.json()
+    })
+  .catch((error) =>  {return error})
 }
+
 
 // Totals for the admin summary. Revenue is grouped by currency (usually just KES).
 export function summarizePurchases(purchases) {

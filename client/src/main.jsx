@@ -23,6 +23,7 @@ import Contact from './pages/Contact.jsx'
 import Privacy from './pages/Privacy.jsx'
 import Terms from './pages/Terms.jsx'
 import Cookies from './pages/Cookies.jsx'
+import TransferTickets from './components/TransferTicket.jsx'
 import VerifyEmailPage from './pages/VerifyEmailPage.jsx'
 
 
@@ -46,6 +47,7 @@ createRoot(document.getElementById('root')).render(
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/pay/:eventId" element={<PaymentPage />} />
           <Route path="/my-tickets" element={<MyTicketsPage />} />
+          <Route path="/transfer-ticket" element={<TransferTickets />} />
           <Route path="/plans" element={<MyPlansPage />} />
           <Route path="/plans/:planId" element={<PlanDetailsPage />} />
           <Route path="/about-us" element={<About />} />
