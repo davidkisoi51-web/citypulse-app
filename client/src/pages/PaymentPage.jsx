@@ -48,7 +48,6 @@ function PaymentPage() {
   const [paymentId, setPaymentId] = useState(null)
   // Always points at the latest completePurchase, so the poller can call it when payment is confirmed.
   const completeRef = useRef(null)
-  const [values, setValues] = useState({event_Id : eventId, eventName :"", eventDate :"",eventVenue :"", eventCity :"", ticketType :"",quantity: 0, unitPrice: 0, paidAt: ""})
 
   // While waiting for the customer to enter their PIN, ask the server for the status every few seconds.
   useEffect(() => {
@@ -110,7 +109,6 @@ function PaymentPage() {
       paidTo: mpesaCode === 'FREE' ? null : MPESA_NUMBER_DISPLAY,
       ...extra,
     }
-    setValues(record)
     recordPurchase(record)
     setPurchase(record)
   }

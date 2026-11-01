@@ -192,7 +192,27 @@ class Tickets(db.Model):
             "transferable": self.transferable
         }
 
+class Transfer(db.Model):
+    __tablename__ = "transfers"
 
+    transfer_id = db.Column(db.Integer, primary_key = True)
+    user_email = db.Column(db.String)
+    transferee_email = db.Column(db.String)
+    ticket = db.Column(db.String, db.ForeignKey("tickets.event_name"), nullable=False)
+
+    def dict(self):
+            return {
+                "id": self.id,
+                "transferee": self.transferee_email,
+                "ticket": self.ticket
+            }
+
+class TransferSchema(Schema):
+    transfer_id = fields.Int(dump_only = True)
+    user_email = fields.String()
+    transferee_email = fields.String()
+    
+    tickets = fields.List(fields.Nested(lambda:TicketsSchema(exclude=("event_name",))))
 
 
 class UserSchema(Schema):
@@ -230,6 +250,7 @@ class TicketsSchema(Schema):
         no_of_tickets = fields.Int()
         transferable = fields.Boolean()
         user_id = fields.Nested(UserSchema(exclude = ("tickets",)))
+
 class Payment(db.Model):
     __tablename__ = "payments"
 

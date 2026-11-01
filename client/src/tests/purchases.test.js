@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { API_URL, loadPurchases, recordPurchase, summarizePurchases } from '../payment/purchases.js'
-import { beforeAll, expect, vi } from 'vitest'
+import { API_URL, recordPurchase, summarizePurchases } from '../payment/purchases.js'
+import { expect, vi } from 'vitest'
 
 //function memoryStorage() {
   //const data = new Map()

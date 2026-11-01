@@ -1,18 +1,16 @@
-import { useState, useEffect} from "react";
+import { useState} from "react";
 import { Link } from 'react-router-dom'
 import NavBar from "./NavBar";
 import './TransferTickets.css'
-import { normalizeEmail } from "../auth/authUtils";
-import ConfirmMsg from "./ConfirmMsg";
 
 const transfer_URL = 'api/auth/transfer'
 
 export function TransferTickets(){
     const [ticket, setTicket] = useState('')
-    const email = document.getElementById("transfer_input")
+    //const email = document.getElementById("transfer_input")
 
    async function test_fetch(email = document.getElementById("transfer_input")){
-    const storeEmail = localStorage.setItem("email", email)
+    //const storeEmail = localStorage.setItem("email", email)
     //need to process email given and return a confrim message
     // issue with post request here
     return fetch(transfer_URL,{

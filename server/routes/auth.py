@@ -9,7 +9,7 @@ from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_requir
 import datetime
 
 from extensions import db
-from models import User, Tickets, TicketsSchema
+from models import User, Tickets, TicketsSchema, Transfer, TransferSchema
 
 from services.email_service import send_verification_email, send_welcome_email
 auth_bp = Blueprint("auth", __name__)
@@ -29,7 +29,7 @@ def code_is_expired(expires_at):
         return True
     if expires_at.tzinfo is None:
         expires_at = expires_at.replace(tzinfo=timezone.utc)
-    return datetime.now(timezone.utc) >= expires_at
+    return datetime.datetime.now(timezone.utc) >= expires_at
 
 
 def enforce_rate_limit(scope, email, max_attempts, window_seconds):
@@ -75,7 +75,7 @@ def register():
     user = User(name=name, email=email, password_hash="")
     user.set_password(password)
     user.verification_code = code
-    user.code_expires_at = datetime.now(timezone.utc) + timedelta(minutes=5)
+    user.code_expires_at = datetime.datetime.now(timezone.utc) + timedelta(minutes=5)
     user.is_verified = False
     db.session.add(user)
     db.session.commit()
@@ -320,26 +320,36 @@ def reset_password():
     }), 200
 
 
-@auth_bp.post("/tickets/transfer")
+@auth_bp.post("/transfer")
 def transfer_tickets():
 
     data = request.get_json() or {}
-    transferee_user = data["email"]
-    user_search = User.query.filter_by(email=transferee_user).first()
-
-    output = {"data": [each.dict() for each in user_search]}
-    if output["data"] == [] : 
-        return {"error": "user not in database"}
-
+    transferee_email = data.get("email")
+    user_email = 'transfer@gmail.com' #current user variable
+    ticket = data["ticket"]
+    user_search = User.query.filter_by(email=transferee_email).first()
+    if user_search is None:
+        return {"error": "no user registered under this email"}
     
-    return {"test": output}
+    transfer = Transfer(user_email = user_email, transferee_email = transferee_email, ticket = ticket)
+    db.session.add(transfer)
+    db.session.commit()
+
+    new_transfer = TransferSchema().dump(transfer)
+
+    output = {"data": new_transfer}
+
+    if output["data"] == [] : 
+        return {"error": "unable to transfer"}
+    
+    return output
 
 
 @auth_bp.post("/tickets")
 #@jwt_required()
 def create_ticket():
-
-    user_identity = int(get_jwt_identity())
+    
+    user_identity = 1
     data = request.get_json() or {}
     event_id = data.get("eventId")
     event_name = data["eventName"]
