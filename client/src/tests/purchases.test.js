@@ -34,7 +34,6 @@ test('recordPurchase post request is successful', async () => {
   expect(fetch).toHaveBeenCalled(1);
   expect(fetch).toHaveBeenCalledWith(API_URL, expect.objectContaining({method: "POST", body: JSON.stringify(test_data)}))
 })
-import { summarizePurchases } from '../payment/purchases.js'
 
 test('summarizePurchases totals purchases, tickets and revenue', () => {
   assert.deepEqual(
