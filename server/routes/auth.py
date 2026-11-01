@@ -6,8 +6,11 @@ from flask import Blueprint, jsonify, request
 from services.auth_rate_limiter import check_rate_limit, RateLimitBackendError
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 
+import datetime
+
 from extensions import db
-from models import User
+from models import User, Tickets, TicketsSchema, Transfer, TransferSchema
+
 from services.email_service import send_verification_email, send_welcome_email
 auth_bp = Blueprint("auth", __name__)
 
@@ -26,7 +29,7 @@ def code_is_expired(expires_at):
         return True
     if expires_at.tzinfo is None:
         expires_at = expires_at.replace(tzinfo=timezone.utc)
-    return datetime.now(timezone.utc) >= expires_at
+    return datetime.datetime.now(timezone.utc) >= expires_at
 
 
 def enforce_rate_limit(scope, email, max_attempts, window_seconds):
@@ -72,7 +75,7 @@ def register():
     user = User(name=name, email=email, password_hash="")
     user.set_password(password)
     user.verification_code = code
-    user.code_expires_at = datetime.now(timezone.utc) + timedelta(minutes=5)
+    user.code_expires_at = datetime.datetime.now(timezone.utc) + timedelta(minutes=5)
     user.is_verified = False
     db.session.add(user)
     db.session.commit()
@@ -161,11 +164,12 @@ def login():
         identity=str(user.id),
         expires_delta=timedelta(hours=1)
     )
-
+    
     return jsonify(data={
         "user": public_user(user),
         "token": token
     }), 200
+
 
 @auth_bp.post("/forgot-password")
 def forgot_password():
@@ -192,7 +196,7 @@ def forgot_password():
     if user is not None:
         code = generate_code()
         user.reset_code = code
-        user.reset_expires_at = datetime.now(timezone.utc) + timedelta(minutes=5)
+        user.reset_expires_at = datetime.datetime.now(timezone.utc) + timedelta(minutes=5)
         db.session.commit()
 
         try:
@@ -314,6 +318,64 @@ def reset_password():
     return jsonify(data={
         "message": "Password reset successfully. Please log in."
     }), 200
+
+
+@auth_bp.post("/transfer")
+def transfer_tickets():
+
+    data = request.get_json() or {}
+    transferee_email = data.get("email")
+    user_email = 'transfer@gmail.com' #current user variable
+    ticket = data["ticket"]
+    user_search = User.query.filter_by(email=transferee_email).first()
+    if user_search is None:
+        return {"error": "no user registered under this email"}
+    
+    transfer = Transfer(user_email = user_email, transferee_email = transferee_email, ticket = ticket)
+    db.session.add(transfer)
+    db.session.commit()
+
+    new_transfer = TransferSchema().dump(transfer)
+
+    output = {"data": new_transfer}
+
+    if output["data"] == [] : 
+        return {"error": "unable to transfer"}
+    
+    return output
+
+
+@auth_bp.post("/tickets")
+#@jwt_required()
+def create_ticket():
+    
+    user_identity = 1
+    data = request.get_json() or {}
+    event_id = data.get("eventId")
+    event_name = data["eventName"]
+    event_date = data["eventDate"]
+    event_time = data.get("eventTime")
+    event_venue = data["eventVenue"]
+    event_city = data["eventCity"]
+    ticket_type = data["ticketType"]
+    quantity = data["quantity"]
+    unit_price = data["unitPrice"]
+    transferable = True
+
+    if not event_id or not isinstance(event_time,str):
+        return {"key_error_msg": "please include event_id and/or event_time"}
+
+    ticket = Tickets(user_id = user_identity, event_id = event_id, paid_at = datetime.datetime.now(), event_name = event_name, event_date = event_date, event_time = event_time, event_venue = event_venue ,event_city = event_city, ticket_type = ticket_type, price = unit_price, no_of_tickets = quantity, transferable = transferable)
+    db.session.add(ticket)
+    db.session.commit()
+
+    new_ticket = TicketsSchema().dump(ticket)
+
+    output = {
+        "msg": new_ticket
+    }
+    return jsonify(output)
+
 
 @auth_bp.get("/me")
 @jwt_required()

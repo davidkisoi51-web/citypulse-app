@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 load_dotenv(Path(__file__).with_name(".env"))
 
 def database_url():
-    url = os.getenv("DATABASE_URL", "postgresql+psycopg://postgres:postgres@localhost:5432/citypulse_dev")
+    url = os.getenv("DATABASE_URL", "sqlite:///citypulse_dev.db")#postgresql+psycopg://postgres:postgres@localhost:5432/citypulse_dev  
     if url.startswith("postgres://"):
         url = "postgresql+psycopg://" + url[len("postgres://"): ]
     elif url.startswith("postgresql://"):

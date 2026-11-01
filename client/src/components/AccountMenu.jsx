@@ -62,6 +62,9 @@ function AccountMenu({ user, onLogout }) {
           <Link className="account-menu__item" to="/my-tickets" onClick={() => setOpen(false)}>
             My tickets
           </Link>
+          <Link className='account-menu__item' to="/transfer-ticket" onClick = {() => setOpen(false)}>
+            Transfer Tickets
+          </Link>
           <button
             type="button"
             className="account-menu__item"

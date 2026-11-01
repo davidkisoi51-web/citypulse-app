@@ -23,6 +23,7 @@ function LoginPage() {
   const update = (e) => setValues((v) => ({ ...v, [e.target.name]: e.target.value }))
 
   const handleSubmit = async (e) => {
+     
     e.preventDefault()
     const found = validateLogin(values)
     setErrors(found)
@@ -32,6 +33,7 @@ function LoginPage() {
     setSubmitting(true)
     try {
       await login(values) 
+      //localStorage.setItem('token', data.token)
     
       redirectAfterAuth(navigate, redirect)
     } catch (err) {

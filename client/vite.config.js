@@ -14,6 +14,7 @@ export default defineConfig({
       globPatterns: ['**/*.{js,css,html,ico,png,svg,webmanifest}'],
       cleanupOutdatedCaches: true,
     },
+    
   })],
   test: {
     environment: 'jsdom',

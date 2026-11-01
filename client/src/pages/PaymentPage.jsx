@@ -262,6 +262,8 @@ function PaymentPage() {
     }
   }
 
+  //handleSaveTicket -> complete purchase, 'FREE', recording the purchase that hsould change
+  //
   const handleSubmit = (e) => {
     e.preventDefault()
     if (busy) return
