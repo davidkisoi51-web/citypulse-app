@@ -2,13 +2,13 @@
 // My Plans and Plan Details screens. Swap `request` for Amina's shared client.js once
 // it's merged; the exported functions (and their callers) can stay the same.
 
-const API_URL = (
+export const API_URL = (
   import.meta.env?.VITE_API_URL ??
   globalThis.process?.env?.VITE_API_URL ??
   'http://localhost:5001/api'
 ).replace(/\/$/, '')
 
-// Where the JWT will live once real auth is merged (the dev auth stub ignores it).
+// Where the login token (JWT) is kept; AuthProvider writes it, every request sends it.
 export const TOKEN_KEY = 'citypulse.token'
 
 export class ApiError extends Error {
@@ -81,7 +81,6 @@ export const deletePlan = (planId) => request(`/plans/${planId}`, { method: 'DEL
 // Saved events (server routes in server/routes/plans.py).
 // Every saved event of the user, across all plans (used to fill in the heart buttons).
 export const listAllSavedEvents = () => request('/plans/saved')
-export const listSavedEvents = (planId) => request(`/plans/${planId}/events`)
 // `event` is a snapshot: { ticketmaster_id, name, url, image, date, time, venue, city, category,
 // price_min, price_max, currency }. The server answers 409 if it's already in the plan.
 export const addSavedEvent = (planId, event) => request(`/plans/${planId}/events`, { method: 'POST', body: event })

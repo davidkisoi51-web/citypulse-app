@@ -1,8 +1,5 @@
-// Pure helpers for the front-end-only auth. No React here, so they can be unit tested.
-//
-// NOTE: accounts live in this browser's localStorage. This is a demo stand-in until the
-// planned backend exists — it is NOT secure (anyone with access to the browser can read
-// or edit the stored data). Swap AuthProvider's signup/login for API calls later.
+// Pure form checks for the login and signup pages. No React here, so they can be unit tested.
+// Accounts themselves live in the database (server/routes/auth.py).
 
 export const MIN_PASSWORD_LENGTH = 8
 
@@ -32,12 +29,4 @@ export function validateSignup({ name = '', email = '', password = '', confirmPa
   if (!confirmPassword) errors.confirmPassword = 'Confirm your password.'
   else if (confirmPassword !== password) errors.confirmPassword = 'Passwords do not match.'
   return errors
-}
-
-// SHA-256 of email + password so plain-text passwords aren't stored. Still not real
-// security (no server, no slow hash) — just avoids keeping the password itself around.
-export async function hashPassword(email, password) {
-  const data = new TextEncoder().encode(`${normalizeEmail(email)}:${password}`)
-  const digest = await globalThis.crypto.subtle.digest('SHA-256', data)
-  return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('')
 }

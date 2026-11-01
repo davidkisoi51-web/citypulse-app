@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { AuthContext } from './authContext'
-import { SESSION_EXPIRED } from '../api/plansApi'
+import { API_URL, SESSION_EXPIRED, TOKEN_KEY } from '../api/plansApi'
 
 const SESSION_KEY = 'citypulse.session'
-const TOKEN_KEY = 'citypulse.token'
-const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5001/api').replace(/\/$/, '')
 
 const readToken = () => {
   try {
