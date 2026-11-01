@@ -12,8 +12,7 @@ import './PaymentPage.css'
 // device), with receipts they can download again.
 function MyTicketsPage() {
   const { user } = useAuth()
-  const [purchases] = useState(() => loadPurchases())
-  
+
   // null while loading; then the list, or an error message.
   const [mine, setMine] = useState(null)
   const [error, setError] = useState('')
