@@ -196,7 +196,7 @@ def forgot_password():
     if user is not None:
         code = generate_code()
         user.reset_code = code
-        user.reset_expires_at = datetime.now(timezone.utc) + timedelta(minutes=5)
+        user.reset_expires_at = datetime.datetime.now(timezone.utc) + timedelta(minutes=5)
         db.session.commit()
 
         try:
