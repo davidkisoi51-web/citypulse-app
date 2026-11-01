@@ -11,82 +11,167 @@
 }
 
 
-/* One panel holding search, category, city and dates. */
+/* One panel holding search, category, city and dates, laid out in two rows:
+     1. search box ..................... 4 events  Clear filters  [Search]
+     2. city · dates · category · sort · sort (stretched to fill the row)
+   The controls come from several components (SearchBar, DateFilterBar), so their wrappers
+   are flattened with `display: contents` and placed with `order`. */
 .filters {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 10px;
-  margin-bottom: 24px;
-  padding: 12px;
+  margin-bottom: 32px;
+  padding: 14px;
   border: 1px solid var(--border);
-  border-radius: 16px;
-  background: var(--bg);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.03));
+  backdrop-filter: blur(10px);
+  box-shadow: 0 24px 48px -28px rgba(0, 0, 0, 0.7);
 
-  @media (max-width: 640px) {
-    padding: 10px;
-    margin-bottom: 20px;
+  /* Line break between the two rows. */
+  &::before {
+    content: '';
+    order: 3;
+    flex-basis: 100%;
+    height: 0;
+    margin-top: -10px;
   }
-}
 
-.filters__row {
-  /* Left: search box, then sort dropdowns. Right: category dropdown, then the Search button. */
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 180px;
-  gap: 10px;
-  align-items: start;
-
-  .search-bar {
-    display: contents; /* lets its rows sit in this grid */
+  .filters__row,
+  .search-bar,
+  .price_date_sorting,
+  .date-filter-bar,
+  .date-left {
+    display: contents;
   }
 
   .search-bar__row {
-    grid-column: 1;
-    grid-row: 1;
+    order: 0;
+    flex: 1 1 320px;
   }
 
-  .price_date_sorting {
-    grid-column: 1;
-    grid-row: 2;
+  .search-bar input {
+    height: 42px;
+    padding-top: 0;
+    padding-bottom: 0;
+    border-radius: 12px;
+  }
 
-    select {
-      margin-top: 0;
+  .filters__submit {
+    order: 2;
+    height: 42px;
+    padding: 0 30px;
+    border-radius: 12px;
+  }
+
+  .date-left > .input-wrap {
+    order: 4;
+    flex: 1 1 auto;
+  }
+
+  .date-range {
+    order: 5;
+    flex: 2 1 auto;
+
+    .input-wrap {
+      flex: 1;
     }
   }
 
   .filters__select {
-    grid-column: 2;
-    grid-row: 1;
+    order: 6;
+    flex-grow: 1;
   }
 
-  .filters__submit {
-    grid-column: 2;
-    grid-row: 2;
-  }
-
-  .search-bar input {
-    height: 38px;
-    padding-top: 0;
-    padding-bottom: 0;
+  .price_date_sorting select {
+    order: 7;
+    flex: 1 0 150px;
+    min-width: 0;
+    max-width: none;
+    margin-top: 0;
+    /* Match the other controls in the panel. */
+    background-color: var(--bg);
     border-radius: 10px;
+    transition: border-color 0.2s;
+
+    &:hover {
+      border-color: var(--accent-border);
+    }
   }
 
-  /* Phones: search box, category, Search button, then sorting. */
+  .filters__select {
+    flex-basis: 150px;
+    min-width: 0;
+  }
+
+  .date-left > .input-wrap select {
+    width: 120px;
+  }
+
+  .input-wrap.clickable {
+    min-width: 140px;
+  }
+
+  .date-right {
+    order: 1;
+    padding: 0 6px;
+  }
+
+  /* Tablets: city + dates on one line, category + both sorts on the next. */
+  @media (max-width: 1150px) {
+    .date-left > .input-wrap {
+      flex: 1 1 28%;
+    }
+
+    .date-range {
+      flex: 1 1 62%;
+    }
+
+    .filters__select,
+    .price_date_sorting select {
+      flex: 1 1 28%;
+    }
+  }
+
+  /* Phones: one control per line (the two sorts share a line), count row at the end. */
   @media (max-width: 640px) {
-    grid-template-columns: 1fr;
+    padding: 12px;
+    margin-bottom: 24px;
 
     .search-bar__row,
-    .filters__select,
     .filters__submit,
-    .price_date_sorting {
-      grid-column: 1;
-      grid-row: auto;
+    .date-left > .input-wrap,
+    .date-range,
+    .filters__select,
+    .date-right {
+      flex: 1 1 100%;
+    }
+
+    .price_date_sorting select {
+      flex: 1 1 calc(50% - 5px);
+      min-width: 0;
+    }
+
+    .date-left > .input-wrap select {
+      width: 100%;
+    }
+
+    .date-range .input-wrap {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .date-right {
+      order: 8;
+      justify-content: space-between;
+      padding: 0;
     }
   }
 }
 
 .filters__select {
-  flex: 0 0 180px;
+  flex: 0 0 170px;
   height: 38px;
   padding: 0 12px;
   font: inherit;
@@ -133,3 +218,95 @@ select option {
   color: var(--text-h, #f5e8ce);
   font-size: 0.9rem;
 }
+
+/* Landing page: a big headline over the 3D ring, and a way on to the full Events page. */
+.home-hero {
+  margin: 12px auto 24px;
+  text-align: center;
+}
+
+.home-hero__title {
+  margin: 0 0 8px;
+  font-size: clamp(40px, 7vw, 76px);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -2px;
+  color: var(--text-h);
+  /* Neon glow that pulses like a beat (120 bpm). */
+  text-shadow:
+    0 0 18px rgba(255, 107, 91, 0.7),
+    0 0 48px rgba(236, 72, 153, 0.35);
+  animation: title-beat 0.5s ease-out infinite alternate;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes title-beat {
+  to {
+    text-shadow:
+      0 0 26px rgba(255, 107, 91, 0.95),
+      0 0 70px rgba(236, 72, 153, 0.5);
+  }
+}
+
+/* On the landing page the ring stage is see-through, so the stage lights show behind it. */
+.app--home .event-ring__stage {
+  background:
+    radial-gradient(60% 45% at 50% 85%, rgba(255, 107, 91, 0.2), transparent 70%),
+    rgba(5, 1, 2, 0.35);
+  border-color: transparent;
+}
+
+.home-hero__text {
+  margin: 0;
+  font-size: 17px;
+  color: var(--text);
+}
+
+.home-hero__status {
+  text-align: center;
+}
+
+/* The ring is the hero here: taller stage, no section heading (the h1 says it). */
+.app--home .event-ring__title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.app--home .event-ring__stage {
+  height: calc(var(--card-h) * 2);
+}
+
+.home-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 48px;
+}
+
+.home-hero__cta {
+  padding: 12px 26px;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  color: #fff;
+  background: var(--button-bg);
+  border-radius: 999px;
+  box-shadow: 0 10px 30px -10px rgba(255, 107, 91, 0.6);
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+}
+

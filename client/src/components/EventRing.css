@@ -1,0 +1,199 @@
+/* 3D ring of upcoming events. EventRing.jsx sets --radius (in card widths, from
+   utils/ring.js), --turn on each card, and --angle on the ring as it rotates. */
+.event-ring {
+  --card-w: 175px;
+  --card-h: 232px;
+  margin-bottom: 40px;
+  text-align: left;
+
+  @media (max-width: 640px) {
+    --card-w: 130px;
+    --card-h: 172px;
+  }
+}
+
+.event-ring .event-ring__title {
+  margin-bottom: 4px;
+}
+
+/* The space the ring turns in: dark, with a faint coral haze and a mirror-like floor. */
+.event-ring__stage {
+  position: relative;
+  height: calc(var(--card-h) * 1.75);
+  overflow: hidden;
+  border-radius: 20px;
+  perspective: 1400px;
+  perspective-origin: 50% 20%;
+  background:
+    radial-gradient(60% 45% at 50% 85%, rgba(255, 107, 91, 0.22), transparent 70%),
+    radial-gradient(80% 60% at 50% 0%, rgba(255, 255, 255, 0.04), transparent 70%),
+    linear-gradient(#0a0203, #120405 60%, #050102);
+  border: 1px solid var(--border);
+}
+
+/* The ring's centre point: pushed back by one radius so the front card sits at its true size. */
+.event-ring__ring {
+  --angle: 0deg;
+  position: absolute;
+  top: 42%;
+  left: 50%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  transform-style: preserve-3d;
+  transform: translateZ(calc(var(--radius) * var(--card-w) * -1)) rotateY(var(--angle));
+}
+
+.event-ring__item {
+  position: absolute;
+  left: calc(var(--card-w) / -2);
+  top: calc(var(--card-h) / -2);
+  width: var(--card-w);
+  height: var(--card-h);
+  transform: rotateY(var(--turn)) translateZ(calc(var(--radius) * var(--card-w)));
+  backface-visibility: hidden;
+  /* Glassy reflection in the floor (Chrome, Safari, Edge; other browsers skip it). */
+  -webkit-box-reflect: below 10px linear-gradient(transparent 55%, rgba(0, 0, 0, 0.35));
+}
+
+/* A glowing circle on the floor that the cards stand on. */
+.event-ring__floor {
+  position: absolute;
+  --d: calc(var(--radius) * var(--card-w) * 2 + 40px);
+  left: calc(var(--d) / -2);
+  top: calc(var(--d) / -2);
+  width: var(--d);
+  height: var(--d);
+  border-radius: 50%;
+  border: 2px solid rgba(255, 107, 91, 0.55);
+  box-shadow:
+    0 0 24px rgba(255, 107, 91, 0.45),
+    inset 0 0 60px rgba(255, 107, 91, 0.12);
+  transform: translateY(calc(var(--card-h) / 2 + 8px)) rotateX(90deg);
+  pointer-events: none;
+}
+
+.event-ring__card {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  overflow: hidden;
+  border: 1.5px solid rgba(255, 107, 91, 0.45);
+  border-radius: 18px;
+  color: #fff;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  background: #1b0809;
+  box-shadow:
+    0 0 18px rgba(255, 107, 91, 0.25),
+    inset 0 0 22px rgba(255, 107, 91, 0.15);
+  filter: brightness(0.7) saturate(0.85);
+  transition:
+    filter 0.4s,
+    box-shadow 0.4s,
+    border-color 0.4s;
+
+  img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 20%;
+  }
+
+  /* Fine vertical lines over the photo, like ribbed glass. */
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 6px);
+    pointer-events: none;
+  }
+
+  &:hover,
+  &:focus-visible {
+    filter: none;
+    border-color: var(--accent);
+    outline: none;
+  }
+}
+
+.event-ring__item--front .event-ring__card {
+  filter: none;
+  border-color: var(--accent);
+  box-shadow:
+    0 0 36px rgba(255, 107, 91, 0.6),
+    0 0 90px rgba(255, 107, 91, 0.25),
+    inset 0 0 26px rgba(255, 107, 91, 0.25);
+}
+
+.event-ring__placeholder {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  font-size: 56px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.event-ring__caption {
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 36px 12px 12px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
+}
+
+.event-ring__date {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: #ffb3a8;
+}
+
+.event-ring__name {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+
+  @media (max-width: 640px) {
+    font-size: 13px;
+  }
+}
+
+.event-ring__controls {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.event-ring__arrow {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--accent-border);
+  border-radius: 50%;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--text-h);
+  background: var(--accent-bg);
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: rgba(255, 107, 91, 0.3);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}

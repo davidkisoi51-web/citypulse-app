@@ -1,11 +1,6 @@
-import { team } from '../data/team.js'
-import { normalizeEmail } from './authUtils.js'
-
-// Accounts with these emails can use the admin portal (/admin).
-// Front-end only: anyone can sign up with one of these emails in their own browser,
-// so this is a demo gate, not real security. Move the check to the backend later.
-export const ADMIN_EMAILS = team.map((member) => normalizeEmail(member.email))
-
+// Who may use the admin portal (/admin) and see every purchase. The server decides
+// (Config.ADMIN_EMAILS) and sends `isAdmin` with the logged-in user; the API checks it
+// again on every admin request, so changing it in the browser unlocks nothing.
 export function isAdmin(user) {
-  return Boolean(user?.email) && ADMIN_EMAILS.includes(normalizeEmail(user.email))
+  return user?.isAdmin === true
 }

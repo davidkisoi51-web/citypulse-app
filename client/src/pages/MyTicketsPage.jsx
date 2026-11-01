@@ -1,38 +1,69 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import NavBar from '../components/NavBar'
 import { useAuth } from '../auth/authContext'
-import { normalizeEmail } from '../auth/authUtils'
-import { loadPurchases } from '../payment/purchases'
+import { listMyPurchases } from '../payment/purchases'
 import { formatAmount } from '../payment/paymentUtils'
 import { downloadPdf, receiptFileName, receiptPdfForPurchase } from '../payment/receipt'
 import { formatDate } from '../utils/formatEvent'
 import './PaymentPage.css'
 
-// The logged-in customer's purchase history, with receipts they can download again.
+// The logged-in customer's purchase history (from the server, so it's the same on every
+// device), with receipts they can download again.
 function MyTicketsPage() {
   const { user } = useAuth()
   const [purchases] = useState(() => loadPurchases())
   
+  // null while loading; then the list, or an error message.
+  const [mine, setMine] = useState(null)
+  const [error, setError] = useState('')
+  const [attempt, setAttempt] = useState(0)
+
+  const userId = user?.id
+  useEffect(() => {
+    if (!userId) return
+    let cancelled = false
+    listMyPurchases()
+      .then((list) => !cancelled && setMine(list))
+      .catch((err) => !cancelled && setError(err.message))
+    return () => {
+      cancelled = true
+    }
+  }, [userId, attempt])
 
   if (!user) return <Navigate to="/login" replace state={{ from: '/my-tickets' }} />
 
-  const mine = purchases.filter((p) => normalizeEmail(p.buyerEmail) === normalizeEmail(user.email))
+  const retry = () => {
+    setError('')
+    setMine(null)
+    setAttempt((n) => n + 1)
+  }
 
   return (
     <>
       <NavBar />
       <main className="pay pay--wide">
-        <Link className="pay__back" to="/">
+        <Link className="pay__back" to="/events">
           ← Back to events
         </Link>
         <h1 className="pay__title">My tickets</h1>
         <p className="pay__intro">Your ticket purchases. Download a receipt any time to show at the venue.</p>
 
-        {mine.length === 0 ? (
+        {error ? (
+          <section className="pay__card" role="alert">
+            <p>Couldn't load your tickets. {error}</p>
+            <button type="button" className="pay__secondary" onClick={retry}>
+              Try again
+            </button>
+          </section>
+        ) : mine === null ? (
+          <p className="pay__meta" role="status">
+            Loading your tickets…
+          </p>
+        ) : mine.length === 0 ? (
           <section className="pay__card">
             <p>You haven't bought any tickets yet.</p>
-            <Link className="pay__primary" to="/">
+            <Link className="pay__primary" to="/events">
               Browse events
             </Link>
           </section>

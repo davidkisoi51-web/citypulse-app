@@ -22,24 +22,3 @@ export function formatPrice(min, max, currency) {
   if (max === min) return fmt(min)
   return max != null ? `${fmt(min)} – ${fmt(max)}` : `From ${fmt(min)}`
 }
-
-// Human-friendly countdown label, e.g. "Today", "Tomorrow", "In 5 days".
-export function daysUntilLabel(date, now = new Date()) {
-  if (!date) return null
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const days = Math.round((new Date(`${date}T00:00:00`) - today) / 86_400_000)
-  if (days <= 0) return 'Today'
-  if (days === 1) return 'Tomorrow'
-  return `In ${days} days`
-}
-
-// Phrase for promo copy: "today", "tomorrow", "this week", or "on Mon, Oct 12".
-export function whenPhrase(date, now = new Date()) {
-  if (!date) return 'soon'
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const days = Math.round((new Date(`${date}T00:00:00`) - today) / 86_400_000)
-  if (days <= 0) return 'today'
-  if (days === 1) return 'tomorrow'
-  if (days <= 7) return 'this week'
-  return `on ${formatDate(date)}`
-}

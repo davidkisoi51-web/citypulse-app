@@ -1,8 +1,8 @@
+import { useEffect, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { useAuth } from '../auth/authContext'
-import { normalizeEmail } from '../auth/authUtils'
 import { isAdmin } from '../auth/admins'
-import { loadPurchases } from '../payment/purchases'
+import { listMyPurchases } from '../payment/purchases'
 import AccountMenu from './AccountMenu'
 import './NavBar.css'
 
@@ -12,10 +12,19 @@ function NavBar({ categories, category, onCategoryChange }) {
   return (
     <header className="nav">
 
-      <Link className="nav__brand" to="/">
-        <img className="nav__logo" src="/citypulse-mark.svg" alt="" width="68" height="68" />
-        CityPulse
+      <Link className="nav__brand" to="/" aria-label="CityPulse home">
+        <img className="nav__logo" src="/citypulse-mark.svg" alt="" width="48" height="48" />
       </Link>
+
+      {/* Centre links; each is underlined on its own page. */}
+      <nav className="nav__links" aria-label="Main">
+        <NavLink className="nav__link" to="/" end>
+          What's on
+        </NavLink>
+        <NavLink className="nav__link" to="/events">
+          Events
+        </NavLink>
+      </nav>
 
     
       {categories && (
@@ -53,7 +62,7 @@ function NavBar({ categories, category, onCategoryChange }) {
                 <span className="visually-hidden"> portal</span>
               </NavLink>
             )}
-            <MyTicketsLink email={user.email} />
+            <MyTicketsLink userId={user.id} />
             <AccountMenu user={user} onLogout={logout} />
           </>
         ) : (
@@ -71,9 +80,19 @@ function NavBar({ categories, category, onCategoryChange }) {
   )
 }
 
-// Clock (history) icon linking to the user's purchase history, with a count badge.
-function MyTicketsLink({ email }) {
-  const count = loadPurchases().filter((p) => normalizeEmail(p.buyerEmail) === normalizeEmail(email)).length
+// Clock (history) icon linking to the user's purchase history, with a count badge
+// (from the server; no badge until it answers, or if it can't).
+function MyTicketsLink({ userId }) {
+  const [count, setCount] = useState(0)
+  useEffect(() => {
+    let cancelled = false
+    listMyPurchases()
+      .then((list) => !cancelled && setCount(list.length))
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [userId])
   const label = count ? `My tickets (${count})` : 'My tickets'
 
   return (

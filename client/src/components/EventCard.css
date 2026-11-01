@@ -1,4 +1,9 @@
+/* 3D tilt: usePointerTilt sets --px/--py (-1..1) from the cursor; the card leans toward
+   it, a soft light follows it, and the photo drifts the other way for depth. */
 .event-card {
+  --px: 0;
+  --py: 0;
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -7,18 +12,44 @@
   overflow: hidden;
   background: var(--bg);
   text-align: left;
+  transform: perspective(900px) rotateX(calc(var(--py) * -7deg)) rotateY(calc(var(--px) * 7deg));
   transition:
     box-shadow 0.2s,
-    transform 0.2s;
+    border-color 0.2s,
+    transform 0.25s ease-out;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: radial-gradient(
+      circle at calc(50% + var(--px) * 50%) calc(50% + var(--py) * 50%),
+      rgba(255, 255, 255, 0.16),
+      transparent 55%
+    );
+    opacity: 0;
+    transition: opacity 0.25s;
+  }
 
   &:hover,
   &:focus-within {
-    box-shadow: var(--shadow);
-    transform: translateY(-2px);
+    border-color: var(--accent-border);
+    box-shadow:
+      var(--shadow),
+      calc(var(--px) * -12px) calc(var(--py) * -12px + 18px) 32px -12px rgba(255, 107, 91, 0.25);
+    transform: perspective(900px) rotateX(calc(var(--py) * -7deg)) rotateY(calc(var(--px) * 7deg))
+      translateY(-4px);
+  }
+
+  &:hover::after {
+    opacity: 1;
   }
 
   @media (prefers-reduced-motion: reduce) {
     transition: none;
+    transform: none;
     &:hover,
     &:focus-within {
       transform: none;
@@ -42,6 +73,13 @@
     object-fit: cover;
     /* Bias the crop upward so faces in portrait photos stay in frame. */
     object-position: center 20%;
+    /* Slightly oversized so it can drift against the tilt without showing an edge. */
+    transform: scale(1.08) translate(calc(var(--px) * -8px), calc(var(--py) * -6px));
+    transition: transform 0.25s ease-out;
+
+    @media (prefers-reduced-motion: reduce) {
+      transform: none;
+    }
   }
 }
 
@@ -115,7 +153,8 @@
   flex-wrap: wrap;
   gap: 8px 12px;
   margin-top: auto;
-  padding-top: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
 }
 
 .event-card__price {
@@ -128,18 +167,21 @@
 .event-card__link {
   margin-left: auto;
   white-space: nowrap;
-  padding: 5px 12px;
-  border-radius: 6px;
+  padding: 6px 16px;
+  border-radius: 999px;
   font-size: 14px;
-  font-weight: 500;
-  color: var(--accent);
-  background: var(--accent-bg);
+  font-weight: 600;
+  color: #fff;
+  background: var(--button-bg);
   text-decoration: none;
-  border: 2px solid transparent;
-  transition: border-color 0.2s;
+  box-shadow: 0 6px 16px -8px rgba(255, 107, 91, 0.8);
+  transition:
+    box-shadow 0.2s,
+    transform 0.2s;
 
   &:hover {
-    border-color: var(--accent-border);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px -8px rgba(255, 107, 91, 0.95);
   }
   &:focus-visible {
     outline: 2px solid var(--accent);

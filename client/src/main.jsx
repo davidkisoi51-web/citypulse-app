@@ -2,12 +2,16 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { registerSW } from 'virtual:pwa-register'
+// First, so the browser's one-time "you can install this" event is never missed.
+import './pwa/install'
 import './index.css'
 import App from './App.jsx'
 import AuthProvider from './auth/AuthProvider.jsx'
 import AdminEventsProvider from './admin/AdminEventsProvider.jsx'
 import SavedEventsProvider from './plans/SavedEventsProvider.jsx'
 import AdminPage from './pages/AdminPage.jsx'
+import AdminLayout from './pages/AdminLayout.jsx'
+import AdminDashboard from './pages/AdminDashboard.jsx'
 import PaymentPage from './pages/PaymentPage.jsx'
 import MyTicketsPage from './pages/MyTicketsPage.jsx'
 import MyPlansPage from './pages/MyPlansPage.jsx'
@@ -25,6 +29,7 @@ import Terms from './pages/Terms.jsx'
 import Cookies from './pages/Cookies.jsx'
 import TransferTickets from './components/TransferTicket.jsx'
 import VerifyEmailPage from './pages/VerifyEmailPage.jsx'
+import DownloadPage from './pages/DownloadPage.jsx'
 
 
 registerSW({ immediate: true })
@@ -36,7 +41,8 @@ createRoot(document.getElementById('root')).render(
         <AdminEventsProvider>
         <SavedEventsProvider>
         <Routes>
-          <Route path="/" element={<App />} />
+          <Route path="/" element={<App view="home" />} />
+          <Route path="/events" element={<App view="events" />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -44,7 +50,10 @@ createRoot(document.getElementById('root')).render(
           <Route path="/verify-email" element={<VerifyEmailPage/>}/>
           <Route path="/reset-password" element={<NewPassword />} />
           <Route path="/reset-success" element={<ResetSuccess/>}/>
-          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="events" element={<AdminPage />} />
+          </Route>
           <Route path="/pay/:eventId" element={<PaymentPage />} />
           <Route path="/my-tickets" element={<MyTicketsPage />} />
           <Route path="/transfer-ticket" element={<TransferTickets />} />
@@ -55,6 +64,7 @@ createRoot(document.getElementById('root')).render(
           <Route path="/privacy-policy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/cookies" element={<Cookies />} />
+          <Route path="/download" element={<DownloadPage />} />
           <Route path="*" element={<App />} />
         </Routes>
         </SavedEventsProvider>

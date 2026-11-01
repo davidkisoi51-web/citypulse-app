@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { hashPassword, normalizeEmail, validateLogin, validateSignup } from '../auth/authUtils.js'
+import { normalizeEmail, validateLogin, validateSignup } from '../auth/authUtils.js'
 
 const validSignup = {
   name: 'Heidi',
@@ -34,13 +34,4 @@ test('validateSignup: flags each invalid field', () => {
     validateSignup({ ...validSignup, confirmPassword: 'different1' }).confirmPassword,
     'Passwords do not match.',
   )
-})
-
-test('hashPassword: deterministic, email-insensitive to case, never the plain password', async () => {
-  const a = await hashPassword('Heidi@Example.com', 'secret123')
-  const b = await hashPassword('heidi@example.com', 'secret123')
-  assert.equal(a, b)
-  assert.match(a, /^[0-9a-f]{64}$/)
-  assert.ok(!a.includes('secret123'))
-  assert.notEqual(a, await hashPassword('heidi@example.com', 'secret124'))
 })

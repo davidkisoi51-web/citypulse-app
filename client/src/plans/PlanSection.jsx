@@ -141,7 +141,7 @@ function PlanSection({ plan, onChange, onDeleted, titleAs: Title = 'h2' }) {
         <div className="plans__empty">
           <p className="plans__empty-title">No events in this plan yet</p>
           <p>Browse events, open one and use "Save to plan", or tap ♡ to save it to Want to go.</p>
-          <Link className="plans__primary" to="/">
+          <Link className="plans__primary" to="/events">
             Browse events
           </Link>
         </div>

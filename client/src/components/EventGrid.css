@@ -16,3 +16,17 @@
   padding: 48px 16px;
   text-align: center;
 }
+
+/* Scroll reveal (see useReveal in EventGrid.jsx). */
+.event-grid--reveal > li {
+  opacity: 0;
+  transform: translateY(28px) scale(0.97);
+  transition:
+    opacity 0.6s ease-out var(--reveal-delay, 0ms),
+    transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) var(--reveal-delay, 0ms);
+}
+
+.event-grid--reveal > li.is-visible {
+  opacity: 1;
+  transform: none;
+}
