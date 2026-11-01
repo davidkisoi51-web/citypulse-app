@@ -19,6 +19,8 @@ import { useSavedEvents } from './plans/savedEventsContext'
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { isPastEvent } from './utils/pastEvent'
+import { isRunningInstalled } from './pwa/install'
+import GetAppSection from './components/GetAppSection'
 import useOnlineStatus from './hooks/useOnlineStatus'
 import OfflinePage  from './pages/OfflinePage'
 import './App.css'
@@ -203,14 +205,13 @@ function App({ view = 'events' }) {
             <Link className="home-hero__cta" to="/events">
               Browse all events →
             </Link>
-            <Link className="home-hero__app" to="/download">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 3v12m0 0-5-5m5 5 5-5M4 19h16" />
-              </svg>
-              Get the app
-            </Link>
           </div>
         </main>
+        {!isRunningInstalled() && (
+          <div className="download download--band">
+            <GetAppSection id="get-app" />
+          </div>
+        )}
         <Footer />
         <EventDetailModal isOpen={isModalOpen} onClose={handleCloseModal} event={selectedEvent} />
       </>
