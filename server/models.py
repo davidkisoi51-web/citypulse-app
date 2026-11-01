@@ -198,7 +198,7 @@ class Transfer(db.Model):
     transfer_id = db.Column(db.Integer, primary_key = True)
     user_email = db.Column(db.String)
     transferee_email = db.Column(db.String)
-    ticket = db.Column(db.String, db.ForeignKey("tickets.event_name"), nullable=False)
+    ticket = db.Column(db.String)
 
     def dict(self):
             return {
@@ -212,7 +212,7 @@ class TransferSchema(Schema):
     user_email = fields.String()
     transferee_email = fields.String()
     
-    tickets = fields.List(fields.Nested(lambda:TicketsSchema(exclude=("event_name",))))
+    tickets = fields.String()
 
 
 class UserSchema(Schema):
