@@ -1,44 +1,115 @@
-/* Promo copy on the left, the featured event's card on the right; stacks on phones. */
+/* Left: a narrow column with a small event card and the promo copy under it.
+   Right: the video (or the event photo) filling the rest, top to bottom and to the edge.
+   Phones: the video on top, then the card and the copy. */
 .featured-banner {
   position: relative;
   display: grid;
-  grid-template-columns: 1fr minmax(220px, 260px);
-  align-items: center;
-  gap: 28px;
+  grid-template-columns: 250px minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    'card media'
+    'promo media';
   margin-bottom: 28px;
-  padding: 28px 32px;
   border-radius: 16px;
   overflow: hidden;
   text-align: left;
   color: #fff;
-  background: linear-gradient(135deg, #3d0a0c, #8b1a1f 55%, #d9442f);
+  /* Dark, like a stage around the video, with a faint red glow behind the card. */
+  background:
+    radial-gradient(90% 60% at 0% 0%, rgba(163, 20, 28, 0.35), transparent 70%),
+    linear-gradient(160deg, #16050a, #0b0304 70%);
+  border: 1px solid var(--border);
+  /* Depth: usePointerTilt sets --px/--py (-1..1); the card leans and the video drifts. */
+  --px: 0;
+  --py: 0;
+  perspective: 1200px;
 
   @media (max-width: 760px) {
     grid-template-columns: 1fr;
-    gap: 24px;
-    padding: 24px 20px;
+    grid-template-rows: auto;
+    grid-template-areas:
+      'media'
+      'card'
+      'promo';
     margin-bottom: 24px;
     border-radius: 12px;
   }
 }
 
-/* Event photo as a faint, blurred texture behind the gradient. */
-.featured-banner__bg {
+/* Right-hand area: no text over it. */
+.featured-banner__media {
+  grid-area: media;
+  position: relative;
+  /* As tall as the left column (card + headline + button); no taller. */
+  min-height: 300px;
+  overflow: hidden;
+  background: #0e0405;
+
+  @media (max-width: 760px) {
+    min-height: 0;
+    aspect-ratio: 16 / 9;
+  }
+}
+
+.featured-banner__photo {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.25;
-  filter: blur(6px);
-  transform: scale(1.1);
-  mix-blend-mode: luminosity;
+  object-position: center 25%;
+}
+
+/* A small card at the top of the left column. */
+.featured-banner__card {
+  grid-area: card;
+  padding: 20px 20px 0;
+
+  @media (max-width: 760px) {
+    width: min(100%, 250px);
+  }
+}
+
+.featured-banner__promo {
+  grid-area: promo;
+  padding: 16px 20px 22px;
+}
+
+/* A light that follows the cursor across the banner. */
+.featured-banner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    600px circle at calc(50% + var(--px) * 50%) calc(50% + var(--py) * 50%),
+    rgba(255, 220, 180, 0.14),
+    transparent 60%
+  );
 }
 
 .featured-banner__promo,
 .featured-banner__card {
   position: relative;
   z-index: 1;
+}
+
+.featured-banner__promo {
+  transform: translate(calc(var(--px) * 6px), calc(var(--py) * 4px));
+  transition: transform 0.4s ease-out;
+}
+
+.featured-banner__card {
+  transform: translate3d(calc(var(--px) * 14px), calc(var(--py) * 10px), 0)
+    rotateX(calc(var(--py) * -6deg)) rotateY(calc(var(--px) * 8deg));
+  transition: transform 0.4s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .featured-banner__promo,
+  .featured-banner__card {
+    transform: none;
+  }
 }
 
 .featured-banner__promo {
@@ -52,7 +123,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.6px;
@@ -82,20 +153,18 @@
 
 .featured-banner__title {
   margin: 0;
-  font-size: 30px;
+  /* Sized for the narrow left column. */
+  font-size: 21px;
   font-weight: 700;
-  line-height: 1.1;
-  letter-spacing: -0.8px;
+  line-height: 1.2;
+  letter-spacing: -0.4px;
   color: #fff;
-
-  @media (max-width: 760px) {
-    font-size: 24px;
-  }
 }
 
 .featured-banner__text {
-  max-width: 480px;
-  font-size: 15px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
   color: rgba(255, 255, 255, 0.9);
 
   strong {
@@ -132,9 +201,108 @@
   --bg: #1b0809;
   border-color: rgba(255, 255, 255, 0.08);
   box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.45);
+
+  /* Compact: shorter photo, smaller text, no location line (the popup has it). */
+  .event-card__media {
+    aspect-ratio: 16 / 10;
+  }
+  .event-card__body {
+    gap: 2px;
+    padding: 10px 12px 12px;
+  }
+  .event-card__title {
+    font-size: 15px;
+  }
+  .event-card__location {
+    display: none;
+  }
+  .event-card__footer {
+    padding-top: 8px;
+  }
+  .event-card__price {
+    font-size: 13px;
+  }
+  /* The early-bird button under the card is the way to buy here. */
+  .event-card__link {
+    display: none;
+  }
+  .heart-button {
+    width: 34px;
+    height: 34px;
+    font-size: 20px;
+  }
 }
 
 /* The featured event has already happened: muted colours, no early-bird pitch. */
 .featured-banner--past {
   background: linear-gradient(135deg, #1c1c1f, #3a3a40);
+}
+
+/* A direct video file fills the right-hand area (drifting slightly with the mouse). */
+.featured-banner__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.06) translate(calc(var(--px) * -10px), calc(var(--py) * -8px));
+  transition: transform 0.4s ease-out;
+
+  @media (prefers-reduced-motion: reduce) {
+    transform: none;
+  }
+}
+
+/* YouTube/Vimeo embed, scaled to cover the right-hand area like object-fit: cover (16:9 player).
+   Clicks pass through; the player is only a backdrop. */
+.featured-banner__embed {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  container-type: size;
+
+  iframe {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100cqw, 177.78cqh);
+    height: max(100cqh, 56.25cqw);
+    border: 0;
+    transform: translate(-50%, -50%) scale(1.06);
+  }
+}
+
+/* Small round pause/play control in the bottom-left corner. */
+.featured-banner__play {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  transition: background 0.2s;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+  }
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.65);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
 }

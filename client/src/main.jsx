@@ -35,7 +35,8 @@ createRoot(document.getElementById('root')).render(
         <AdminEventsProvider>
         <SavedEventsProvider>
         <Routes>
-          <Route path="/" element={<App />} />
+          <Route path="/" element={<App view="home" />} />
+          <Route path="/events" element={<App view="events" />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />

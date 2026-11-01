@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import EventCard from './EventCard'
 import './EventGrid.css'
 
@@ -14,7 +15,39 @@ function SkeletonCard() {
   )
 }
 
+// Scroll reveal: cards fade and rise in as they come into view, a row at a time, staggered
+// left to right. Cards start visible; the hiding class is only added once JS is running and
+// the browser supports it, so nothing can get stuck invisible.
+function useReveal(list, deps) {
+  useEffect(() => {
+    const ul = list.current
+    if (!ul || !('IntersectionObserver' in window)) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+    const items = [...ul.children]
+    ul.classList.add('event-grid--reveal')
+    const observer = new IntersectionObserver(
+      (entries) => {
+        let n = 0
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue
+          entry.target.style.setProperty('--reveal-delay', `${n++ * 70}ms`)
+          entry.target.classList.add('is-visible')
+          observer.unobserve(entry.target)
+        }
+      },
+      { rootMargin: '0px 0px -8% 0px', threshold: 0.1 },
+    )
+    items.forEach((li) => observer.observe(li))
+    return () => observer.disconnect()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps)
+}
+
 function EventGrid({ events = [], loading = false, error = null, skeletonCount = 6, onEventClick, savedEventIds = [], savingEventIds = [], onToggleSave, }) {
+  const list = useRef(null)
+  useReveal(list, [events, loading, error])
+
   if (error) {
     return (
       <p className="event-grid__status" role="alert">
@@ -38,7 +71,7 @@ function EventGrid({ events = [], loading = false, error = null, skeletonCount =
   }
 
   return (
-    <ul className="event-grid">
+    <ul className="event-grid" ref={list}>
       {events.map((event) => (
         <li key={event.id}>
           <EventCard event={event} onSelect={onEventClick} saved={savedEventIds.includes(event.id)} saving={savingEventIds.includes(event.id)} onToggleSave={onToggleSave ? () => onToggleSave(event) : undefined} />

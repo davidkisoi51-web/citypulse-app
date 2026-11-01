@@ -125,7 +125,7 @@ function PaymentPage() {
     <>
       <NavBar />
       <main className="pay">
-        <Link className="pay__back" to="/">
+        <Link className="pay__back" to="/events">
           ← Back to events
         </Link>
         {content}
@@ -200,7 +200,7 @@ function PaymentPage() {
         <Link className="pay__secondary" to="/my-tickets">
           View my tickets
         </Link>
-        <Link className="pay__secondary" to="/">
+        <Link className="pay__secondary" to="/events">
           Back to events
         </Link>
       </section>,

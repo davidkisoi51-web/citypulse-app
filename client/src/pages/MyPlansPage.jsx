@@ -62,7 +62,7 @@ function MyPlansPage() {
     <>
       <NavBar />
       <main className="plans">
-        <Link className="plans__back" to="/">
+        <Link className="plans__back" to="/events">
           ← Back to events
         </Link>
         <header className="plans__header">

@@ -44,7 +44,7 @@ function AdminPage() {
           <section className="admin__panel">
             <h1 className="admin__title">Admins only</h1>
             <p>Your account ({user.email}) doesn't have access to the admin portal.</p>
-            <Link className="admin__link" to="/">
+            <Link className="admin__link" to="/events">
               ← Back to events
             </Link>
           </section>
@@ -129,7 +129,7 @@ function AdminPage() {
       <NavBar />
       <main className="admin">
         <header className="admin__header">
-          <Link className="admin__back" to="/">
+          <Link className="admin__back" to="/events">
             ← Back to events
           </Link>
           <h1 className="admin__title">Admin portal</h1>
