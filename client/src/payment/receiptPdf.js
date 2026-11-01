@@ -70,7 +70,3 @@ export function buildReceiptPdf({ title, subtitle, rows, footer }) {
   pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefAt}\n%%EOF\n`
   return pdf
 }
-
-export function newReceiptNumber(now = Date.now()) {
-  return `G2-${now.toString(36).toUpperCase()}`
-}

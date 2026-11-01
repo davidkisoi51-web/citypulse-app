@@ -129,28 +129,6 @@
   letter-spacing: 0.6px;
 }
 
-.featured-banner__pulse {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #fbbf24;
-  box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.7);
-  animation: banner-pulse 1.8s infinite;
-
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
-  }
-}
-
-@keyframes banner-pulse {
-  70% {
-    box-shadow: 0 0 0 10px rgba(251, 191, 36, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(251, 191, 36, 0);
-  }
-}
-
 .featured-banner__title {
   margin: 0;
   /* Sized for the narrow left column. */

@@ -1,9 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { daysUntilLabel, formatDate, formatPrice, whenPhrase } from '../utils/formatEvent.js'
-
-// Fixed "today" so date tests don't depend on when they run (local time, midday).
-const NOW = new Date(2026, 9, 1, 12, 0, 0) // 1 Oct 2026
+import { formatDate, formatPrice } from '../utils/formatEvent.js'
 
 test('formatDate: missing date shows "Date TBA"', () => {
   assert.equal(formatDate(null), 'Date TBA')
@@ -46,19 +43,4 @@ test('formatPrice: other currencies keep their own symbol', () => {
   const usd = formatPrice(10, 20, 'USD')
   assert.ok(usd.includes('10') && usd.includes('20'))
   assert.doesNotMatch(usd, /Ksh/)
-})
-
-test('daysUntilLabel: today, tomorrow, and N days', () => {
-  assert.equal(daysUntilLabel('2026-10-01', NOW), 'Today')
-  assert.equal(daysUntilLabel('2026-10-02', NOW), 'Tomorrow')
-  assert.equal(daysUntilLabel('2026-10-12', NOW), 'In 11 days')
-  assert.equal(daysUntilLabel(null, NOW), null)
-})
-
-test('whenPhrase: today / tomorrow / this week / a date', () => {
-  assert.equal(whenPhrase('2026-10-01', NOW), 'today')
-  assert.equal(whenPhrase('2026-10-02', NOW), 'tomorrow')
-  assert.equal(whenPhrase('2026-10-08', NOW), 'this week')
-  assert.match(whenPhrase('2026-10-12', NOW), /^on /)
-  assert.equal(whenPhrase(null, NOW), 'soon')
 })

@@ -19,9 +19,10 @@ import { useSavedEvents } from './plans/savedEventsContext'
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { isPastEvent } from './utils/pastEvent'
+import { isRunningInstalled } from './pwa/install'
+import GetAppSection from './components/GetAppSection'
 import useOnlineStatus from './hooks/useOnlineStatus'
 import OfflinePage  from './pages/OfflinePage'
-import InstallPrompt from './components/InstallPrompt'
 import './App.css'
 import DateFilterBar from './components/DateFilterBar'
 
@@ -183,7 +184,6 @@ function App({ view = 'events' }) {
     return (
       <>
         <NavBar />
-        <InstallPrompt />
         <ConcertBackdrop />
         <CursorGlow />
         <main className="app app--home">
@@ -207,6 +207,11 @@ function App({ view = 'events' }) {
             </Link>
           </div>
         </main>
+        {!isRunningInstalled() && (
+          <div className="download download--band">
+            <GetAppSection id="get-app" />
+          </div>
+        )}
         <Footer />
         <EventDetailModal isOpen={isModalOpen} onClose={handleCloseModal} event={selectedEvent} />
       </>
@@ -217,7 +222,6 @@ function App({ view = 'events' }) {
   return (
     <>
       <NavBar />
-      <InstallPrompt />
       <main className="app">
         <h1 className="visually-hidden">CityPulse events</h1>
         <section className="filters" aria-label="Filter events">

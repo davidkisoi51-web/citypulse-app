@@ -11,7 +11,6 @@ import {
   normalizeMpesaCode,
   ticketOptions,
 } from '../payment/paymentUtils'
-import { newReceiptNumber } from '../payment/receiptPdf'
 import { downloadPdf, receiptFileName, receiptPdfForPurchase } from '../payment/receipt'
 import { recordPurchase } from '../payment/purchases'
 import {
@@ -36,8 +35,13 @@ function PaymentPage() {
   const [quantity, setQuantity] = useState(1)
   const [code, setCode] = useState('')
   const [codeError, setCodeError] = useState('')
-  // The logged purchase once payment is confirmed (drives the success screen and PDF).
+  // The saved purchase once payment is confirmed (drives the success screen and PDF).
   const [purchase, setPurchase] = useState(null)
+  // Saving the receipt to the server: in progress, and the error to show if it failed.
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
+  // The last completePurchase call, so "Try again" can repeat it after a failed save.
+  const lastAttempt = useRef(null)
   const [downloaded, setDownloaded] = useState(false)
   const [copied, setCopied] = useState(false)
 
@@ -63,7 +67,8 @@ function PaymentPage() {
         stopped = true
         clearInterval(timer)
         if (result.state === 'paid') {
-          completeRef.current?.(payment.receipt, {
+          // M-PESA's receipt code; if it didn't send one, our payment id still identifies it.
+          completeRef.current?.(payment.receipt || `STK-${payment.id}`, {
             paidTo: 'M-PESA Express (STK Push)',
             paymentId: payment.id,
           })
@@ -86,31 +91,35 @@ function PaymentPage() {
   const total = option ? option.price * quantity : null
   const currency = event?.currency || 'KES'
 
-  // Confirms the payment: shows the success screen and logs the purchase for the admin portal.
-  const completePurchase = (mpesaCode, extra = {}) => {
+  // Confirms the payment: saves the purchase on the server (for "My tickets" and the admin
+  // portal), then shows the success screen. The server adds the receipt number, buyer and total.
+  const completePurchase = async (mpesaCode, extra = {}) => {
+    lastAttempt.current = [mpesaCode, extra]
     const record = {
-      receiptNo: newReceiptNumber(),
-      paidAt: new Date().toISOString(),
-      buyerName: user.name,
-      buyerEmail: user.email,
       eventId: event.id,
       eventName: event.name,
       eventDate: event.date,
       eventTime: event.time,
       eventVenue: event.venue,
       eventCity: event.city,
+      eventCategory: event.category,
       ticketType: option.label,
       quantity,
       unitPrice: option.price,
-      total,
       currency,
       method: mpesaCode === 'FREE' ? 'Free' : 'M-PESA',
       mpesaCode: mpesaCode === 'FREE' ? null : mpesaCode,
-      paidTo: mpesaCode === 'FREE' ? null : MPESA_NUMBER_DISPLAY,
-      ...extra,
+      paidTo: mpesaCode === 'FREE' ? null : extra.paidTo || MPESA_NUMBER_DISPLAY,
     }
-    recordPurchase(record)
-    setPurchase(record)
+    setSaving(true)
+    setSaveError('')
+    try {
+      setPurchase(await recordPurchase(record))
+    } catch (err) {
+      setSaveError(`We couldn't save your tickets: ${err.message}`)
+    } finally {
+      setSaving(false)
+    }
   }
 
   // Keep the ref pointing at the latest completePurchase (updated after each render, never during it).
@@ -229,7 +238,7 @@ function PaymentPage() {
     }
   }
 
-  const busy = stkState === 'sending' || stkState === 'waiting'
+  const busy = stkState === 'sending' || stkState === 'waiting' || saving
 
   const handleStkPush = async () => {
     setStkMessage('')
@@ -255,6 +264,7 @@ function PaymentPage() {
 
   const handleSubmit = (e) => {
     e.preventDefault()
+    if (busy) return
     if (free) {
       completePurchase('FREE')
       return
@@ -310,9 +320,23 @@ function PaymentPage() {
           Your price is <strong>{free ? 'Free' : formatAmount(total, currency)}</strong>
         </p>
 
+        {saveError && (
+          <div className="pay__error" role="alert">
+            <p>{saveError}</p>
+            <button
+              type="button"
+              className="pay__secondary"
+              onClick={() => completePurchase(...lastAttempt.current)}
+              disabled={saving}
+            >
+              Try again
+            </button>
+          </div>
+        )}
+
         {free ? (
-          <button className="pay__primary" type="submit">
-            Confirm free tickets
+          <button className="pay__primary" type="submit" disabled={busy}>
+            {saving ? 'Saving…' : 'Confirm free tickets'}
           </button>
         ) : (
           <>
@@ -399,8 +423,8 @@ function PaymentPage() {
               )}
             </label>
 
-            <button className="pay__primary" type="submit">
-              Confirm payment
+            <button className="pay__primary" type="submit" disabled={busy}>
+              {saving ? 'Saving…' : 'Confirm payment'}
             </button>
           </>
         )}

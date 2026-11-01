@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { buildReceiptPdf, newReceiptNumber } from '../payment/receiptPdf.js'
+import { buildReceiptPdf } from '../payment/receiptPdf.js'
 
 const pdf = buildReceiptPdf({
   title: 'CityPulse',
@@ -30,11 +30,6 @@ test('contains the receipt details, safely escaped and ASCII-only', () => {
 test('stream /Length matches the content', () => {
   const [, len, body] = pdf.match(/<< \/Length (\d+) >>\nstream\n([\s\S]*?)\nendstream/)
   assert.equal(body.length, Number(len))
-})
-
-test('newReceiptNumber is prefixed and unique per time', () => {
-  assert.match(newReceiptNumber(1700000000000), /^G2-[0-9A-Z]+$/)
-  assert.notEqual(newReceiptNumber(1), newReceiptNumber(2))
 })
 
 test('receiptPdfForPurchase includes the purchase details', async () => {

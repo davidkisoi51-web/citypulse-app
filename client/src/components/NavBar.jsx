@@ -1,8 +1,8 @@
+import { useEffect, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { useAuth } from '../auth/authContext'
-import { normalizeEmail } from '../auth/authUtils'
 import { isAdmin } from '../auth/admins'
-import { loadPurchases } from '../payment/purchases'
+import { listMyPurchases } from '../payment/purchases'
 import AccountMenu from './AccountMenu'
 import './NavBar.css'
 
@@ -62,7 +62,7 @@ function NavBar({ categories, category, onCategoryChange }) {
                 <span className="visually-hidden"> portal</span>
               </NavLink>
             )}
-            <MyTicketsLink email={user.email} />
+            <MyTicketsLink userId={user.id} />
             <AccountMenu user={user} onLogout={logout} />
           </>
         ) : (
@@ -80,9 +80,19 @@ function NavBar({ categories, category, onCategoryChange }) {
   )
 }
 
-// Clock (history) icon linking to the user's purchase history, with a count badge.
-function MyTicketsLink({ email }) {
-  const count = loadPurchases().filter((p) => normalizeEmail(p.buyerEmail) === normalizeEmail(email)).length
+// Clock (history) icon linking to the user's purchase history, with a count badge
+// (from the server; no badge until it answers, or if it can't).
+function MyTicketsLink({ userId }) {
+  const [count, setCount] = useState(0)
+  useEffect(() => {
+    let cancelled = false
+    listMyPurchases()
+      .then((list) => !cancelled && setCount(list.length))
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [userId])
   const label = count ? `My tickets (${count})` : 'My tickets'
 
   return (

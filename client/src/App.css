@@ -284,7 +284,9 @@ select option {
 
 .home-hero__actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
+  gap: 12px;
   margin-bottom: 48px;
 }
 
@@ -307,3 +309,4 @@ select option {
     outline-offset: 3px;
   }
 }
+
