@@ -29,12 +29,14 @@ function authHeader() {
   }
 }
 
+export const SESSION_EXPIRED = 'citypulse:session-expired'
+
 // Turns a failed response into a message a user can act on.
 export function describeError(status, body) {
   const code = body?.error?.code
   const serverMessage = body?.error?.message
   if (status === 401) return 'Your session has expired. Please log in again.'
-  if (status === 403) return "You don't have access to this plan."
+  if (status === 403) return serverMessage || "You don't have access to this."
   if (status === 404 && code === 'not_found') return serverMessage || 'Not found.'
   if (status === 404 || status === 405) return "This action isn't available on the server yet."
   if (status === 422) return serverMessage || 'Some details are invalid.'
@@ -58,6 +60,9 @@ export async function request(path, { method = 'GET', body } = {}) {
   if (response.status === 204) return null
   const json = await response.json().catch(() => null)
   if (!response.ok) {
+    // The login token expired or is no longer valid: AuthProvider logs out, and pages that
+    // need an account send the visitor to log in (and back again afterwards).
+    if (response.status === 401) globalThis.dispatchEvent?.(new Event(SESSION_EXPIRED))
     throw new ApiError(describeError(response.status, json), {
       status: response.status,
       code: json?.error?.code ?? 'http_error',

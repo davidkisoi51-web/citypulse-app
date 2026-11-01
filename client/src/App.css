@@ -284,7 +284,9 @@ select option {
 
 .home-hero__actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
+  gap: 12px;
   margin-bottom: 48px;
 }
 
@@ -301,6 +303,43 @@ select option {
 
   &:hover {
     transform: translateY(-2px);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+}
+
+/* Secondary landing-page button: opens the black "Get the app" page. */
+.home-hero__app {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 22px;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  color: #fff;
+  background: #000;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+  transition:
+    transform 0.2s,
+    border-color 0.2s;
+
+  svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    border-color: #fff;
   }
   &:focus-visible {
     outline: 2px solid var(--accent);

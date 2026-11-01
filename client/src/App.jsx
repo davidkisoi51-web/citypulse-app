@@ -21,7 +21,6 @@ import { Link } from 'react-router-dom'
 import { isPastEvent } from './utils/pastEvent'
 import useOnlineStatus from './hooks/useOnlineStatus'
 import OfflinePage  from './pages/OfflinePage'
-import InstallPrompt from './components/InstallPrompt'
 import './App.css'
 import DateFilterBar from './components/DateFilterBar'
 
@@ -183,7 +182,6 @@ function App({ view = 'events' }) {
     return (
       <>
         <NavBar />
-        <InstallPrompt />
         <ConcertBackdrop />
         <CursorGlow />
         <main className="app app--home">
@@ -205,6 +203,12 @@ function App({ view = 'events' }) {
             <Link className="home-hero__cta" to="/events">
               Browse all events →
             </Link>
+            <Link className="home-hero__app" to="/download">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 3v12m0 0-5-5m5 5 5-5M4 19h16" />
+              </svg>
+              Get the app
+            </Link>
           </div>
         </main>
         <Footer />
@@ -217,7 +221,6 @@ function App({ view = 'events' }) {
   return (
     <>
       <NavBar />
-      <InstallPrompt />
       <main className="app">
         <h1 className="visually-hidden">CityPulse events</h1>
         <section className="filters" aria-label="Filter events">

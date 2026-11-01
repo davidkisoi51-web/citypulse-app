@@ -102,8 +102,10 @@ test('loadAdminEvents: seeds once, at the top, without duplicates', () => {
   assert.deepEqual(loadAdminEvents(existing, seed).map((e) => e.id), ['admin-1'])
 })
 
-test('isAdmin: team emails only, case-insensitive', () => {
-  assert.equal(isAdmin({ email: 'Heidi.Temba@student.moringaschool.com' }), true)
-  assert.equal(isAdmin({ email: 'someone@example.com' }), false)
+test("isAdmin: only the server's isAdmin flag counts", () => {
+  // The server's flag decides; an admin-looking email on its own isn't enough.
+  assert.equal(isAdmin({ email: 'x@example.com', isAdmin: true }), true)
+  assert.equal(isAdmin({ email: 'Heidi.Temba@student.moringaschool.com' }), false)
+  assert.equal(isAdmin({ email: 'x@example.com', isAdmin: 'true' }), false)
   assert.equal(isAdmin(null), false)
 })

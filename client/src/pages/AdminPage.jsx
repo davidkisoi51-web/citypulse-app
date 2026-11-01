@@ -1,24 +1,17 @@
 import { useRef, useState } from 'react'
-import { Link, Navigate } from 'react-router-dom'
-import NavBar from '../components/NavBar'
-import { useAuth } from '../auth/authContext'
-import { isAdmin } from '../auth/admins'
 import { useAdminEvents } from '../admin/adminEventsContext'
 import { emptyEventForm, eventToForm, isUploadedImage, validateEventForm } from '../admin/adminEventUtils'
 import { resizeImageFile } from '../admin/resizeImage'
 import { formatDate, formatPrice } from '../utils/formatEvent'
-import { loadPurchases, summarizePurchases } from '../payment/purchases'
-import { formatAmount } from '../payment/paymentUtils'
-import { downloadPdf, receiptFileName, receiptPdfForPurchase } from '../payment/receipt'
 import FormField from './FormField'
 import './AuthPage.css'
 import './AdminPage.css'
 
 const CATEGORY_SUGGESTIONS = ['Music', 'Sports', 'Arts & Theatre', 'Comedy', 'Family', 'Film', 'Miscellaneous']
 
-// Admin portal: create, list, edit and delete admin events (shown on the events page).
+// Admin portal › Events: create, list, edit and delete admin events (shown on the events
+// page). Rendered inside AdminLayout, which handles login, admin access and the sidebar.
 function AdminPage() {
-  const { user } = useAuth()
   const { events, addEvent, updateEvent, deleteEvent, saveFailed } = useAdminEvents()
   const [form, setForm] = useState(emptyEventForm)
   const [errors, setErrors] = useState({})
@@ -29,29 +22,6 @@ function AdminPage() {
   const [imageBusy, setImageBusy] = useState(false)
   const [imageError, setImageError] = useState('')
   const formRef = useRef(null)
-  // Purchase log (read when the portal opens; purchases happen on other pages).
-  const [purchases] = useState(() => loadPurchases())
-  const [purchaseFilter, setPurchaseFilter] = useState('all')
-
-  // Not logged in: log in first, then come back here.
-  if (!user) return <Navigate to="/login" replace state={{ from: '/admin' }} />
-
-  if (!isAdmin(user)) {
-    return (
-      <>
-        <NavBar />
-        <main className="admin admin--denied">
-          <section className="admin__panel">
-            <h1 className="admin__title">Admins only</h1>
-            <p>Your account ({user.email}) doesn't have access to the admin portal.</p>
-            <Link className="admin__link" to="/events">
-              ← Back to events
-            </Link>
-          </section>
-        </main>
-      </>
-    )
-  }
 
   const update = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }))
 
@@ -126,13 +96,8 @@ function AdminPage() {
 
   return (
     <>
-      <NavBar />
-      <main className="admin">
         <header className="admin__header">
-          <Link className="admin__back" to="/events">
-            ← Back to events
-          </Link>
-          <h1 className="admin__title">Admin portal</h1>
+          <h1 className="admin__title">Events</h1>
           <p>Add, edit and delete events. Saved events appear on the events page alongside live listings.</p>
         </header>
 
@@ -300,107 +265,7 @@ function AdminPage() {
           </section>
         </div>
 
-        <PurchaseLog purchases={purchases} filter={purchaseFilter} onFilterChange={setPurchaseFilter} />
-      </main>
     </>
-  )
-}
-
-// Everyone who bought tickets (newest first), with totals and a filter by event.
-function PurchaseLog({ purchases, filter, onFilterChange }) {
-  const eventNames = [...new Set(purchases.map((p) => p.eventName))].sort()
-  const shown = filter === 'all' ? purchases : purchases.filter((p) => p.eventName === filter)
-  const { count, tickets, revenue } = summarizePurchases(shown)
-  const revenueText =
-    Object.entries(revenue)
-      .map(([currency, amount]) => formatAmount(amount, currency))
-      .join(' + ') || formatAmount(0)
-
-  return (
-    <section className="admin__panel admin__purchases" aria-labelledby="admin-purchases-title">
-      <div className="admin__purchases-head">
-        <h2 id="admin-purchases-title" className="admin__subtitle">
-          Ticket purchases
-        </h2>
-        {purchases.length > 0 && (
-          <label className="admin__filter">
-            <span className="visually-hidden">Filter purchases by event</span>
-            <select className="select-chevron" value={filter} onChange={(e) => onFilterChange(e.target.value)}>
-              <option value="all">All events</option>
-              {eventNames.map((name) => (
-                <option key={name} value={name}>
-                  {name}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
-      </div>
-
-      <dl className="admin__stats">
-        <div>
-          <dt>Purchases</dt>
-          <dd>{count}</dd>
-        </div>
-        <div>
-          <dt>Tickets sold</dt>
-          <dd>{tickets}</dd>
-        </div>
-        <div>
-          <dt>Revenue</dt>
-          <dd>{revenueText}</dd>
-        </div>
-      </dl>
-
-      {shown.length === 0 ? (
-        <p className="admin__empty">No ticket purchases yet. They'll appear here after someone pays.</p>
-      ) : (
-        <div className="admin__table-wrap">
-          <table className="admin__table">
-            <thead>
-              <tr>
-                <th scope="col">Date</th>
-                <th scope="col">Buyer</th>
-                <th scope="col">Event</th>
-                <th scope="col">Tickets</th>
-                <th scope="col">Total</th>
-                <th scope="col">M-PESA code</th>
-                <th scope="col">Receipt</th>
-              </tr>
-            </thead>
-            <tbody>
-              {shown.map((p) => (
-                <tr key={p.receiptNo}>
-                  <td>
-                    {new Date(p.paidAt).toLocaleString('en-KE', { dateStyle: 'medium', timeStyle: 'short' })}
-                  </td>
-                  <td>
-                    <span className="admin__cell-main">{p.buyerName}</span>
-                    <span className="admin__cell-sub">{p.buyerEmail}</span>
-                  </td>
-                  <td>{p.eventName}</td>
-                  <td>
-                    {p.quantity} × {p.ticketType}
-                  </td>
-                  <td>{p.total ? formatAmount(p.total, p.currency) : 'Free'}</td>
-                  <td className="admin__mono">{p.mpesaCode ?? '—'}</td>
-                  <td>
-                    <button
-                      type="button"
-                      className="admin__link-button admin__mono"
-                      onClick={() => downloadPdf(receiptPdfForPurchase(p), receiptFileName(p))}
-                    >
-                      {p.receiptNo}
-                      <span className="visually-hidden"> (download PDF)</span>
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </section>
   )
 }
 

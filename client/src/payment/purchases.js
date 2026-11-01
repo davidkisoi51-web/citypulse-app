@@ -1,26 +1,15 @@
-// Ticket purchase log shown in the admin portal. Front-end only: kept in this browser's
-// localStorage until there's a backend, so it only lists purchases made in this browser.
+// Ticket purchases (receipts), stored on the server (server/routes/purchases.py) so they
+// follow the customer to any device and the admin portal sees everyone's.
+import { request } from '../api/plansApi.js'
 
-export const PURCHASES_KEY = 'citypulse.purchases'
+// Saves a completed checkout; the server adds the receipt number, buyer and total.
+export const recordPurchase = (purchase) => request('/purchases', { method: 'POST', body: purchase })
 
-export function loadPurchases(storage = globalThis.localStorage) {
-  try {
-    const parsed = JSON.parse(storage?.getItem(PURCHASES_KEY) ?? '[]')
-    return Array.isArray(parsed) ? parsed.filter((p) => p && p.receiptNo) : []
-  } catch {
-    return []
-  }
-}
+// The logged-in customer's purchases, newest first.
+export const listMyPurchases = () => request('/purchases/mine')
 
-// Adds a purchase (newest first). Returns false if the browser couldn't save it.
-export function recordPurchase(purchase, storage = globalThis.localStorage) {
-  try {
-    storage?.setItem(PURCHASES_KEY, JSON.stringify([purchase, ...loadPurchases(storage)]))
-    return true
-  } catch {
-    return false
-  }
-}
+// Every customer's purchases, newest first (admins only).
+export const listAllPurchases = () => request('/purchases')
 
 // Totals for the admin summary. Revenue is grouped by currency (usually just KES).
 export function summarizePurchases(purchases) {
