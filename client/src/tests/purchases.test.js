@@ -1,24 +1,38 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { API_URL, loadPurchases, recordPurchase, summarizePurchases } from '../payment/purchases.js'
+import { beforeAll, expect, vi } from 'vitest'
 
-function memoryStorage() {
-  const data = new Map()
-  return { getItem: (k) => (data.has(k) ? data.get(k) : null), setItem: (k, v) => data.set(k, String(v)) }
-}
+//function memoryStorage() {
+  //const data = new Map()
+  //return { getItem: (k) => (data.has(k) ? data.get(k) : null), setItem: (k, v) => data.set(k, String(v)) }
 
-test('recordPurchase adds newest first; loadPurchases survives bad data', () => {
-  const storage = memoryStorage()
-  assert.deepEqual(loadPurchases(storage), [])
-  assert.equal(recordPurchase({ receiptNo: 'G2-1' }), true)
-  recordPurchase({ receiptNo: 'G2-2' })
-  assert.deepEqual(loadPurchases(storage).map((p) => p.receiptNo), ['G2-2', 'G2-1'])
-  assert.deepEqual(loadPurchases(storage), [])
-})
+test('recordPurchase post request is successful', async () => {
+  const test_data = {
+          paidAt: new Date().toISOString(),
+          buyerName: "name",
+          buyerEmail: "email",
+          eventId: "event-id",
+          eventName: "event-name",
+          eventDate: "event-date",
+          eventTime: "event-time",
+          eventVenue: "event-venue",
+          eventCity: "event-city",
+          ticketType: "VIP",
+          quantity: 1,
+          unitPrice: 2500
+  }
+  
+  global.fetch = vi.fn(() => 
+    Promise.resolve({ 
+      ok: true, status: 200, json: () => Promise.resolve(test_data),
+    }))
 
-test('recordPurchase reports when storage is full', () => {
-  const full = { getItem: () => null, setItem: () => { throw new Error('QuotaExceededError') } }
-  assert.equal(recordPurchase({ receiptNo: 'G2-3' }, full), false)
+  const post_data = await recordPurchase(test_data);
+  expect(post_data).toEqual(test_data)
+  assert.deepEqual(API_URL, '/api/auth/tickets')
+  expect(fetch).toHaveBeenCalled(1);
+  expect(fetch).toHaveBeenCalledWith(API_URL, expect.objectContaining({method: "POST", body: JSON.stringify(test_data)}))
 })
 
 test('summarizePurchases totals purchases, tickets and revenue', () => {

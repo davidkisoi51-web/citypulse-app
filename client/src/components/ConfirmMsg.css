@@ -1,0 +1,26 @@
+.popup{
+  width: 400px;
+  background: #fff;
+  border-radius: 6px; 
+  position:absolute; 
+  top:50%;
+  left:50%;
+  transform: translate(-50%, -50%) scale(1);
+  padding: 0 30px 30px;
+  visibility: visible
+}
+
+.popup-box{
+  display : flex;
+  align-items:center; 
+  justify-content: center; 
+  width: 100px;
+}
+
+.open-popup{
+    visibility: visible;
+    top: 50%;
+    transform: translate(-50%, -50%) scale(1);
+
+
+}

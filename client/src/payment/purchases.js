@@ -13,12 +13,14 @@ export function loadPurchases(storage = globalThis.localStorage) {
   }
 }
 
-export function recordPurchase(ticket) {
+export async function recordPurchase(ticket, storage = globalThis.localStorage) {
+  const token = storage?.getItem('token')
+  //console.log("retrieved ", token)
 
-  fetch(API_URL,{
+  return fetch(API_URL,{
     method: "POST",
     headers: {"Content-Type": "application/json", 
-        "Authorization": `Bearer <token>`},
+        "Authorization": `Bearer ${token}`},
     body: JSON.stringify(ticket),
   })
     .then(response => {
@@ -26,9 +28,9 @@ export function recordPurchase(ticket) {
       return response.json()
     })
     .then((data)=> {
-      return data.json()
+      return data
     })
-  .catch((error) =>  {return error})
+  .catch((error) =>  {throw error;})
 }
 
 

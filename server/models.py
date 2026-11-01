@@ -30,6 +30,13 @@ class User(db.Model):
 
     def __repr__(self):
         return f'User {self.name}'
+    
+    def dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "email": self.email,
+        }
 
 
 class Plan(db.Model):
@@ -49,6 +56,8 @@ class Plan(db.Model):
     user = db.relationship("User", back_populates="plans")
     saved_events = db.relationship("SavedEvent", back_populates="plan", cascade="all, delete-orphan", passive_deletes=True)
 
+    
+    
     def serialize(self, include_events=False):
         payload = {
             "id": self.id,

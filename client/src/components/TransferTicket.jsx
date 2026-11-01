@@ -1,55 +1,34 @@
-import { useState } from "react";
-import { useAuth } from "../auth/authContext";
+import { useState, useEffect} from "react";
 import { Link } from 'react-router-dom'
 import NavBar from "./NavBar";
-import { API_URL } from "../payment/purchases";
 import './TransferTickets.css'
+import { normalizeEmail } from "../auth/authUtils";
+import ConfirmMsg from "./ConfirmMsg";
 
-//need to add email validation and transfer functions
-export function TransferTickets({onTransfer}){
-   // const {user} = useAuth
+const transfer_URL = 'api/auth/transfer'
 
-    function handleSumbit(event){
-        event.preventDefault()
+export function TransferTickets(){
+    const [ticket, setTicket] = useState('')
+    const email = document.getElementById("transfer_input")
 
-        //placeholder before implementing functionality
-        const user_email = ""
-
-        fetch(API_URL,{
+   async function test_fetch(email = document.getElementById("transfer_input")){
+    const storeEmail = localStorage.setItem("email", email)
+    //need to process email given and return a confrim message
+    // issue with post request here
+    return fetch(transfer_URL,{
             method: "POST",
             headers: {"Content-Type": "application/json", "Authorization": `Bearer token`},
-            body: JSON.stringify(user_email),
+            body: JSON.stringify(email),
         })
         .then((response) => {
             if(!response.ok) { throw new Error("post request failed")}
             return response.json()
         })
-        .then((data) => onTransfer(user_email))
-        .catch((error) => {return error})
-       }
-
-       function ticketSelect(){
-         fetch(API_URL,{
-            methods: "GET",
-            headers: {
-            "Authorization": `Bearer <token>`},
-        })
-        .then(response => {
-        if (!response.ok){ throw new Error ("post request failed")}
-        return response.json()
-        })
-        .then(data => { 
-            for (const test of data){
-            return (
-                <>
-                <option value ={test}>test</option>
-                </>
-            )
-            }
-        })
-        .catch((error) =>  {return error})
-       }
-       
+        .then((data) => {return data})
+        .catch((error) => {throw error})
+}
+    const mock_tickets = ["Kering - Nov 2nd", "Njerae - Nov 15th", "Neyo - Dec 6th"]
+    
        return (
         <>
         <NavBar />
@@ -60,28 +39,35 @@ export function TransferTickets({onTransfer}){
         <p className="transfer_desc">Transfer a ticket over to another user!</p>
         <main className="ticket_transfer">        
         <div className ="transfer_card" >   
-            <form className="transfer_form"  onSubmit={handleSumbit}>
+            
+            <form className="transfer_form" action={test_fetch}>
 
                 <p className="p_transfer">Transferee Email:</p>
                 
-                <input className="transfer_input" type="text" name = "transfer_email" placeholder="Email"></input>
+                <input className="transfer_input" type="text" 
+                    name = "transfer_email" placeholder="Email" 
+                    ></input>
 
                 <div className="select_transfer">
                 <p className="p_transfer">Ticket to transfer:</p>
-                <select className="ticket_select" onClick={ticketSelect}>
-                    
+                <select className="ticket_select" value={ticket} onChange={(e) => setTicket(e.target.value)} >
+                    <option>Tickets</option>
+                    {mock_tickets.map((c) => (
+                        <option key={c} value={c} style={{backgroundColor: "rgb(80, 11, 11)", color: "white"}}>
+                        {c}
+                        </option>
+                    ))}
                 </select>
                 </div>
 
-                <button 
+                <button type="submit"
                 className="transfer_ticket_btn"
-                type="submit"
                 >Transfer</button>
             </form>
         </div>
         </main>
         </>
-       )//on the button click, prompt a message to confirm
+       )
 }
 export default TransferTickets
 

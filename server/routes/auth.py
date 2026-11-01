@@ -6,7 +6,6 @@ from flask import Blueprint, jsonify, request
 from services.auth_rate_limiter import check_rate_limit, RateLimitBackendError
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 
-from auth import require_user
 import datetime
 
 from extensions import db
@@ -165,11 +164,12 @@ def login():
         identity=str(user.id),
         expires_delta=timedelta(hours=1)
     )
-
+    
     return jsonify(data={
         "user": public_user(user),
         "token": token
     }), 200
+
 
 @auth_bp.post("/forgot-password")
 def forgot_password():
@@ -319,33 +319,27 @@ def reset_password():
         "message": "Password reset successfully. Please log in."
     }), 200
 
-@auth_bp.get("/tickets")
-def tickets(): 
 
-    #authentication help!!
-    user_id = 1
-     
-    retrieval = db.session.scalars(db.select(Tickets).where(Tickets.user_id == user_id))
-
-    output = {"data": [each.dict() for each in retrieval]}
-
-    if output["data"] == [] : 
-            return {"msg": "No Tickets available for this user, *Back to Events*"}
-        
-    return jsonify(output)
-
-#make a route for the tranfer tickets to change user_id for a specific ticket (by the ticket_id), 
-# to the given user's (given by email), search user_email and add ticket to their data row.
 @auth_bp.post("/tickets/transfer")
 def transfer_tickets():
+
     data = request.get_json() or {}
+    transferee_user = data["email"]
+    user_search = User.query.filter_by(email=transferee_user).first()
+
+    output = {"data": [each.dict() for each in user_search]}
+    if output["data"] == [] : 
+        return {"error": "user not in database"}
+
     
+    return {"test": output}
+
 
 @auth_bp.post("/tickets")
 #@jwt_required()
 def create_ticket():
-    #not sure how to configure to get the user identity without causing a 422
-    user_identity = 1
+
+    user_identity = int(get_jwt_identity())
     data = request.get_json() or {}
     event_id = data.get("eventId")
     event_name = data["eventName"]
