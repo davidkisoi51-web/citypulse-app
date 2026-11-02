@@ -1,5 +1,6 @@
 import {useState} from "react";
 import {useLocation, useNavigate, Link} from "react-router-dom";
+import { authPost } from "../api/plansApi";
 import AuthLayout from "./AuthLayout";
 import FormField from "./FormField";
 
@@ -14,17 +15,7 @@ export default function VerifyCode() {
         e.preventDefault();
         setError("");
         try {
-            const res = await fetch("/api/auth/verify-reset-code", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({email, code}),
-            });
-            const data = await res.json();
-            if (!res.ok) {setError(data.error?.message || "Invalid code");
-                return;
-            } 
+            await authPost("verify-reset-code", {email, code: code.trim()});
             navigate(`/reset-password?email=${encodeURIComponent(email)}`, {state: {email, code}});
         } catch (err) {
             setError(err.message);

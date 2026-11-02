@@ -1,5 +1,6 @@
 import {useState} from "react";
 import {useLocation, useNavigate} from "react-router-dom";
+import { authPost } from "../api/plansApi";
 import AuthLayout from "./AuthLayout";
 import FormField from "./FormField";
 
@@ -28,19 +29,17 @@ export default function NewPassword() {
             setError("Password must be at least 8 characters long.");
             return;
         }
-        const res = await fetch("/api/auth/reset-password", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({email, code, new_password: newPassword, confirm_password: confirmPassword}),
+        try {
+            await authPost("reset-password", {
+                email,
+                code,
+                new_password: newPassword,
+                confirm_password: confirmPassword,
             });
-            const data = await res.json();
-            if (!res.ok) {
-                setError(data.error?.message || data.message || "Reset failed");
-                return
-            }
             navigate("/reset-success")
+        } catch (err) {
+            setError(err.message || "Reset failed")
+        }
     };
 
     return (

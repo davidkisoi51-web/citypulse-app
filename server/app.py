@@ -13,6 +13,7 @@ from routes.plans import plans_bp
 from routes.auth import auth_bp
 from routes.events import events_bp 
 from routes.payments import payments_bp
+from routes.purchases import purchases_bp
 
 
 def create_app(config_object=Config):
@@ -34,6 +35,7 @@ def create_app(config_object=Config):
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(events_bp, url_prefix="/api/events")
     app.register_blueprint(payments_bp, url_prefix="/api/payments")
+    app.register_blueprint(purchases_bp, url_prefix="/api/purchases")
   
 
     @app.cli.command("send-event-reminders")

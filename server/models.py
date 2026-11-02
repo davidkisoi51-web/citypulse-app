@@ -10,7 +10,7 @@ class User(db.Model):
     __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(120), unique=True, nullable=False)
+    name = db.Column(db.String(120), nullable=False)
     email = db.Column(db.String(255), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
     is_verified = db.Column(db.Boolean, nullable=False, default=False)
@@ -172,9 +172,17 @@ class Tickets(db.Model):
     event_city = db.Column(db.String)
     mpesa_no =  db.Column(db.String) #needs to be validated
     ticket_type = db.Column(db.String)
-    price = db.Column(db.Integer)
+    price = db.Column(db.Float)
     no_of_tickets = db.Column(db.Integer)
     transferable = db.Column(db.Boolean, default = True)
+    receipt_no = db.Column(db.String(32), unique=True, nullable=True)
+    event_category = db.Column(db.String(120))
+    currency = db.Column(db.String(8), nullable=False, default="KES")
+    total = db.Column(db.Float)
+    method = db.Column(db.String(40))
+    mpesa_code = db.Column(db.String(32))
+    paid_to = db.Column(db.String(160))
+    payment_id = db.Column(db.Integer, db.ForeignKey("payments.id"), unique=True)
 
     def dict(self):
         return {
@@ -190,6 +198,28 @@ class Tickets(db.Model):
             "ticket type": self.ticket_type,
             "number of tickets": self.no_of_tickets,
             "transferable": self.transferable
+        }
+
+    def purchase_dict(self):
+        return {
+            "id": self.id,
+            "receiptNo": self.receipt_no,
+            "paidAt": self.paid_at,
+            "eventId": self.event_id,
+            "eventName": self.event_name,
+            "eventDate": self.event_date,
+            "eventTime": self.event_time,
+            "eventVenue": self.event_venue,
+            "eventCity": self.event_city,
+            "eventCategory": self.event_category,
+            "ticketType": self.ticket_type,
+            "quantity": self.no_of_tickets,
+            "unitPrice": self.price,
+            "total": self.total,
+            "currency": self.currency,
+            "method": self.method,
+            "mpesaCode": self.mpesa_code,
+            "paidTo": self.paid_to,
         }
 
 class Transfer(db.Model):

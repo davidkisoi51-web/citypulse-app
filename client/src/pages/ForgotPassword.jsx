@@ -1,5 +1,6 @@
 import {useState} from "react";
 import {Link, useNavigate} from "react-router-dom";
+import { authPost } from "../api/plansApi";
 import AuthLayout from "./AuthLayout";
 import FormField from "./FormField";
 
@@ -14,17 +15,8 @@ export default function ForgotPassword() {
         setError(""); setMessage("");
 
         try {
-            const res = await fetch("/api/auth/forgot-password", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({email: email.trim().toLowerCase() }),
-            });
-            const text = await res.text();
-            const data = text ? JSON.parse(text) : {};
-            if (!res.ok) throw new Error(data.message || data.error || "Something went wrong.");
-            setMessage(data.message || data.data?.message);
+            const data = await authPost("forgot-password", {email: email.trim().toLowerCase()});
+            setMessage(data.message);
             navigate(`/verify-code?email=${email.trim().toLowerCase()}`, 
                 {state: {email: email.trim().toLowerCase()}});
         } catch (err) {

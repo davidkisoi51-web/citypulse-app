@@ -195,6 +195,20 @@
   &:hover:not(:disabled) {
     filter: brightness(1.1);
   }
+
+  .auth__resend {
+    border: 0;
+    background: transparent;
+    color: var(--accent);
+    cursor: pointer;
+    font: inherit;
+    padding: 8px;
+  }
+
+  .auth__resend:disabled {
+    cursor: wait;
+    opacity: 0.65;
+  }
   &:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
