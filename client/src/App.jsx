@@ -19,6 +19,7 @@ import { useSavedEvents } from './plans/savedEventsContext'
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { isPastEvent } from './utils/pastEvent'
+import { kenyaFirst } from './utils/kenyaFirst'
 import { isRunningInstalled } from './pwa/install'
 import GetAppSection from './components/GetAppSection'
 import useOnlineStatus from './hooks/useOnlineStatus'
@@ -177,11 +178,13 @@ function App({ view = 'events' }) {
   const filtering = Boolean(query.trim() || startDate || endDate) || category !== 'all'
   const recommended =
     filtering || apiLoading ? [] : recommendEvents(allEvents, savedEvents, { excludeIds: nextEvent ? [nextEvent.id] : [] })
-  // Landing page ring: the next 18 upcoming events in the chosen city, soonest first. It
-  // ignores the search and filters, which live on the Events page.
-  const ringEvents = sortEvents(
-    allEvents.filter((e) => (!city || norm(e.city) === norm(city)) && !isPastEvent(e)),
-    SORT_OPTIONS.dateNearest,
+  // Landing page ring: 18 upcoming events in the chosen city, Kenyan ones first, each group
+  // soonest first. It ignores the search and filters, which live on the Events page.
+  const ringEvents = kenyaFirst(
+    sortEvents(
+      allEvents.filter((e) => (!city || norm(e.city) === norm(city)) && !isPastEvent(e)),
+      SORT_OPTIONS.dateNearest,
+    ),
   ).slice(0, 18)
 
   if (view === 'home') {
