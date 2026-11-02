@@ -13,7 +13,7 @@
     top: 150px;
 
     
-    @media (max-width: auto){
+    @media (max-width: 660px){
         max-width: none;
     }
 }

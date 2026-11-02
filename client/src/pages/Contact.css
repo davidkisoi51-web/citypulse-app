@@ -9,7 +9,7 @@
     text-shadow: 0 0 18px rgba(255, 107, 91, 0.7), 0 0 48px rgba(105, 29, 67, 0.35);
     position: relative;
 
-    @media (max-width: auto){
+    @media (max-width: 660px){
         max-width: none;
     }
 }

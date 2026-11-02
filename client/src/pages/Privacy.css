@@ -29,7 +29,7 @@
     color:rgb(252, 252, 252);
     text-shadow: 0 0 18px rgba(255, 107, 91, 0.5), 0 0 32px rgba(236, 72, 153, 0.6);
     position: relative;
-    @media (max-width: auto){
+    @media (max-width: 660px){
         max-width: none;
     }
 }
