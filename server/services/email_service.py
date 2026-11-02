@@ -90,38 +90,6 @@ def _send_email(to_email, subject, html_body, text_body=None):
         print(f"Email failed to {to_email}: {e}")
         return False
 
-def send_verification_email(to_email, code, name="there"):
-    subject = "Your CityPulse verification code"
-    safe_name = escape(str(name or "there"))
-    safe_code = escape(str(code))
-
-    text = f"""
-Hi {name},
-
-Your CityPulse verification code is:
-
-    {code}
-
-This code expires in 5 minutes.
-
-If you didn't request this, ignore this email.
-
-- CityPulse Team
-{FRONTEND_URL}
-"""
-    html = f"""
-    <div>
-        <h2>Welcome to CityPulse!</h2>
-        <p>Hi {safe_name},</p>
-        <p>Your verification code is:</p>
-        <h1>{safe_code}</h1>
-        <p>This code expires in <b>5 minutes</b>.</p>
-        <p>If you didn't request this, you can safely ignore this email.</p>
-    </div>
-    """
-    return _send_email(to_email, subject, html, text)
-
-
 def send_welcome_email(to_email, name="there"):
     subject = "Welcome to CityPulse 🎉"
     events_block = _get_events_block()

@@ -80,3 +80,10 @@ test('describeError covers auth, missing endpoints and server errors', () => {
   assert.equal(describeError(503, { error: { message: 'JWT authentication is not configured yet' } }), 'JWT authentication is not configured yet')
   assert.match(describeError(500, null), /went wrong/)
 })
+
+test('describeError: a server without M-PESA set up says so instead of a generic error', () => {
+  assert.equal(
+    describeError(502, { error: { code: 'mpesa_not_configured', message: 'MPESA_PASSKEY is not configured on the server' } }),
+    "M-PESA payments aren't set up on this server yet.",
+  )
+})

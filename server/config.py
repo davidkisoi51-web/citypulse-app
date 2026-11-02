@@ -34,6 +34,12 @@ class Config:
         for email in os.getenv("ADMIN_EMAILS", "").split(",")
         if email.strip()
     }
+    # Everyone with an email at these domains is an admin too (comma-separated).
+    ADMIN_DOMAINS = {
+        domain.strip().lower().lstrip("@")
+        for domain in os.getenv("ADMIN_DOMAINS", "student.moringaschool.com").split(",")
+        if domain.strip()
+    }
     TICKETMASTER_API_KEY = os.getenv("TICKETMASTER_API_KEY")
     DEFAULT_EVENT_CITY = os.getenv("DEFAULT_EVENT_CITY", "Nairobi")
     # Countries searched for events (Ticketmaster takes one per request, so each is asked in turn).

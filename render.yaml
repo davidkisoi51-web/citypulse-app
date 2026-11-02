@@ -30,6 +30,8 @@ services:
         sync: false
       - key: ADMIN_EMAILS
         sync: false
+      - key: ADMIN_DOMAINS
+        value: student.moringaschool.com
       - key: SMTP_USER
         sync: false
       - key: SMTP_PASS
