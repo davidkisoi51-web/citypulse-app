@@ -3,6 +3,7 @@ import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/authContext'
 import { MIN_PASSWORD_LENGTH, validateSignup } from '../auth/authUtils'
 //import { redirectAfterAuth } from '../auth/redirectAfterAuth'
+/// removed this line heeere
 import AuthLayout from './AuthLayout'
 import FormField from './FormField'
 
