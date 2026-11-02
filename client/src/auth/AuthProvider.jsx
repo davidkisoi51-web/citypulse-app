@@ -90,12 +90,16 @@ export const AuthProvider = ({ children }) => {
     return () => window.removeEventListener(SESSION_EXPIRED, expire)
   }, [])
 
+  // No email verification: creating an account logs the user straight in.
   const signup = useCallback(async ({ name, email, password }) => {
-    return authPost('register', {
+    const session = await authRequest('register', {
       name: name.trim(),
       email: email.trim().toLowerCase(),
       password,
     })
+    setUser(session)
+    setCheckedId(session.id)
+    return session
   }, [])
 
   const logout = useCallback(() => {
