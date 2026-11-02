@@ -9,9 +9,6 @@ from models import User
 def create_user(
     email="auth-test@example.test",
     password="OriginalPass123",
-    verified=False,
-    verification_code=None,
-    code_expires_at=None,
     reset_code=None,
     reset_expires_at=None,
 ):
@@ -19,9 +16,6 @@ def create_user(
         name=f"Test {email}",
         email=email,
         password_hash="",
-        is_verified=verified,
-        verification_code=verification_code,
-        code_expires_at=code_expires_at,
         reset_code=reset_code,
         reset_expires_at=reset_expires_at,
     )
@@ -35,15 +29,7 @@ def create_user(
 # REGISTRATION
 # --------------------------------------------------
 
-def test_register_success(client, app, monkeypatch):
-    sent_emails = []
-
-    monkeypatch.setattr(
-        auth_routes,
-        "send_verification_email",
-        lambda email, code, name: sent_emails.append((email, code, name)) or True,
-    )
-
+def test_register_creates_account_that_can_log_in_immediately(client, app):
     response = client.post("/api/auth/register", json={
         "name": "New User",
         "email": "newuser@example.test",
@@ -52,16 +38,19 @@ def test_register_success(client, app, monkeypatch):
 
     assert response.status_code == 201
     assert response.json["data"]["email"] == "newuser@example.test"
-    assert response.json["data"]["need_verification"] is True
-    assert len(sent_emails) == 1
+    assert response.json["data"]["message"] == "Account created successfully."
 
     with app.app_context():
         user = User.query.filter_by(email="newuser@example.test").first()
         assert user is not None
-        assert user.is_verified is False
-        assert user.verification_code is not None
-        assert len(user.verification_code) == 5
-        assert user.code_expires_at is not None
+        assert user.password_check("StrongPass123")
+
+    login_response = client.post("/api/auth/login", json={
+        "email": "newuser@example.test",
+        "password": "StrongPass123",
+    })
+    assert login_response.status_code == 200
+    assert login_response.json["data"]["token"]
 
 
 def test_register_rejects_non_object_json(client):
@@ -79,109 +68,12 @@ def test_register_rejects_short_password(client):
     assert response.status_code == 422
 
 
-def test_register_allows_duplicate_names_and_reports_email_failure(client, monkeypatch):
-    monkeypatch.setattr(auth_routes, "send_verification_email", lambda *args: False)
-    first = client.post("/api/auth/register", json={
-        "name": "Shared Name",
-        "email": "first-name@example.test",
-        "password": "StrongPass123",
-    })
-    second = client.post("/api/auth/register", json={
-        "name": "Shared Name",
-        "email": "second-name@example.test",
-        "password": "StrongPass123",
-    })
+def test_email_verification_endpoints_are_removed(client):
+    verify_response = client.post("/api/auth/verify-email", json={})
+    resend_response = client.post("/api/auth/resend-verification", json={})
 
-    assert first.status_code == second.status_code == 201
-    assert first.json["data"]["verification_sent"] is False
-    assert "could not be sent" in first.json["data"]["message"]
-
-
-def test_resend_verification_sends_a_fresh_code(client, app, monkeypatch):
-    sent = []
-    monkeypatch.setattr(
-        auth_routes,
-        "send_verification_email",
-        lambda email, code, name: sent.append((email, code, name)) or True,
-    )
-    with app.app_context():
-        create_user(email="resend@example.test", verification_code="11111")
-
-    response = client.post("/api/auth/resend-verification", json={
-        "email": "RESEND@example.test",
-    })
-
-    assert response.status_code == 200
-    assert len(sent) == 1
-    assert sent[0][0] == "resend@example.test"
-    with app.app_context():
-        user = User.query.filter_by(email="resend@example.test").first()
-        assert user.verification_code == sent[0][1]
-        assert user.code_expires_at is not None
-
-
-# --------------------------------------------------
-# EMAIL VERIFICATION
-# --------------------------------------------------
-
-def test_verify_email_success(client, app, monkeypatch):
-    monkeypatch.setattr(
-        auth_routes,
-        "send_welcome_email",
-        lambda email, name: True,
-    )
-
-    with app.app_context():
-        create_user(
-            email="verify@example.test",
-            verification_code="12345",
-            code_expires_at=datetime.now(timezone.utc) + timedelta(minutes=5),
-        )
-
-    response = client.post("/api/auth/verify-email", json={
-        "email": "verify@example.test",
-        "code": "12345",
-    })
-
-    assert response.status_code == 200
-
-    with app.app_context():
-        user = User.query.filter_by(email="verify@example.test").first()
-        assert user.is_verified is True
-        assert user.verification_code is None
-        assert user.code_expires_at is None
-
-
-def test_verify_email_rejects_expired_code(client, app):
-    with app.app_context():
-        create_user(
-            email="expired-verify@example.test",
-            verification_code="12345",
-            code_expires_at=datetime.now(timezone.utc) - timedelta(minutes=1),
-        )
-
-    response = client.post("/api/auth/verify-email", json={
-        "email": "expired-verify@example.test",
-        "code": "12345",
-    })
-
-    assert response.status_code == 400
-
-
-def test_verify_email_rejects_missing_expiry(client, app):
-    with app.app_context():
-        create_user(
-            email="missing-expiry@example.test",
-            verification_code="12345",
-            code_expires_at=None,
-        )
-
-    response = client.post("/api/auth/verify-email", json={
-        "email": "missing-expiry@example.test",
-        "code": "12345",
-    })
-
-    assert response.status_code == 400
+    assert verify_response.status_code == 404
+    assert resend_response.status_code == 404
 
 
 # --------------------------------------------------
@@ -193,7 +85,6 @@ def test_login_success(client, app):
         create_user(
             email="login@example.test",
             password="CorrectPass123",
-            verified=True,
         )
 
     response = client.post("/api/auth/login", json={
@@ -212,7 +103,6 @@ def test_login_rejects_wrong_password(client, app):
         create_user(
             email="wrong-password@example.test",
             password="CorrectPass123",
-            verified=True,
         )
 
     response = client.post("/api/auth/login", json={
@@ -223,11 +113,10 @@ def test_login_rejects_wrong_password(client, app):
     assert response.status_code == 401
 
 
-def test_login_rejects_unverified_user(client, app):
+def test_login_succeeds_for_registered_account(client, app):
     with app.app_context():
         create_user(
             email="unverified-login@example.test",
-            verified=False,
         )
 
     response = client.post("/api/auth/login", json={
@@ -235,7 +124,8 @@ def test_login_rejects_unverified_user(client, app):
         "password": "OriginalPass123",
     })
 
-    assert response.status_code == 403
+    assert response.status_code == 200
+    assert response.json["data"]["token"]
 
 
 def test_login_rejects_non_object_json(client):
@@ -268,7 +158,7 @@ def test_forgot_password_sends_code_for_existing_user(client, app, monkeypatch):
     )
 
     with app.app_context():
-        create_user(email="forgot@example.test", verified=True)
+        create_user(email="forgot@example.test")
 
     response = client.post("/api/auth/forgot-password", json={
         "email": "forgot@example.test",
@@ -290,7 +180,7 @@ def test_forgot_password_sends_code_for_existing_user(client, app, monkeypatch):
 
 def test_reset_password_rejects_missing_code(client, app):
     with app.app_context():
-        create_user(email="no-code@example.test", verified=True)
+        create_user(email="no-code@example.test")
 
     response = client.post("/api/auth/reset-password", json={
         "email": "no-code@example.test",
@@ -305,7 +195,6 @@ def test_reset_password_rejects_expired_code(client, app):
     with app.app_context():
         create_user(
             email="expired-reset@example.test",
-            verified=True,
             reset_code="54321",
             reset_expires_at=datetime.now(timezone.utc) - timedelta(minutes=1),
         )
@@ -334,7 +223,6 @@ def test_reset_password_success_and_consumes_code(client, app, monkeypatch):
     with app.app_context():
         create_user(
             email="reset-success@example.test",
-            verified=True,
             reset_code="67890",
             reset_expires_at=datetime.now(timezone.utc) + timedelta(minutes=5),
         )
@@ -359,7 +247,6 @@ def test_reset_password_rejects_code_reuse(client, app):
     with app.app_context():
         create_user(
             email="reuse@example.test",
-            verified=True,
             reset_code="67890",
             reset_expires_at=datetime.now(timezone.utc) + timedelta(minutes=5),
         )
@@ -382,7 +269,6 @@ def test_reset_password_rejects_mismatched_passwords(client, app):
     with app.app_context():
         create_user(
             email="mismatch@example.test",
-            verified=True,
             reset_code="67890",
             reset_expires_at=datetime.now(timezone.utc) + timedelta(minutes=5),
         )
@@ -405,36 +291,11 @@ def test_reset_password_rejects_mismatched_passwords(client, app):
 # AUTHENTICATION RATE LIMITS
 # --------------------------------------------------
 
-def test_verify_email_rate_limit(client, app):
-    with app.app_context():
-        create_user(
-            email="verify-limit@example.test",
-            verification_code="12345",
-            code_expires_at=datetime.now(timezone.utc) + timedelta(minutes=5),
-        )
-
-    payload = {
-        "email": "verify-limit@example.test",
-        "code": "99999",
-    }
-
-    for _ in range(5):
-        response = client.post("/api/auth/verify-email", json=payload)
-        assert response.status_code == 400
-
-    response = client.post("/api/auth/verify-email", json=payload)
-
-    assert response.status_code == 429
-    assert response.json["error"]["code"] == "rate_limited"
-    assert int(response.headers["Retry-After"]) > 0
-
-
 def test_login_rate_limit(client, app):
     with app.app_context():
         create_user(
             email="login-limit@example.test",
             password="CorrectPass123",
-            verified=True,
         )
 
     payload = {
@@ -509,9 +370,9 @@ def test_rate_limit_database_failure_fails_closed(client, monkeypatch):
 
     monkeypatch.setattr(auth_routes, "check_rate_limit", database_failure)
 
-    response = client.post("/api/auth/verify-email", json={
+    response = client.post("/api/auth/login", json={
         "email": "backend-failure@example.test",
-        "code": "12345",
+        "password": "WrongPassword123",
     })
 
     assert response.status_code == 503

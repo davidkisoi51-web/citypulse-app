@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/authContext'
 import { MIN_PASSWORD_LENGTH, validateSignup } from '../auth/authUtils'
-import { redirectAfterAuth } from '../auth/redirectAfterAuth'
+//import { redirectAfterAuth } from '../auth/redirectAfterAuth'
 import AuthLayout from './AuthLayout'
 import FormField from './FormField'
 
@@ -31,9 +31,11 @@ function SignupPage() {
     
     setSubmitting(true)
     try {
-      // Logged in straight away; back to where they came from (and their ticket, if any).
       await signup(values)
-      redirectAfterAuth(navigate, redirect)
+      navigate('/login', {
+        replace: true,
+        state: { accountCreated: true },
+      })
     } catch (err) {
       setFormError(err.message || "Signup Failed")
     } finally {

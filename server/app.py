@@ -40,7 +40,7 @@ def create_app(config_object=Config):
 
     @app.cli.command("send-event-reminders")
     def send_event_reminders():
-        """Send a daily digest for verified users with saved events tomorrow."""
+        """Send a daily digest to users with saved events tomorrow."""
         from models import SavedEvent, Plan, User
         from services.email_service import send_event_reminder
 
@@ -54,7 +54,6 @@ def create_app(config_object=Config):
             .filter(
                 SavedEvent.date == target_date,
                 SavedEvent.reminder_sent_at.is_(None),
-                User.is_verified.is_(True),
             )
             .all()
         )

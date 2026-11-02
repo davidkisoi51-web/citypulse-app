@@ -58,7 +58,7 @@ export function TransferTickets() {
         ← Back to events
       </Link>
       <h3>Transfer Tickets</h3>
-      <p className="transfer_desc">Transfer a ticket purchase to another verified CityPulse account.</p>
+      <p className="transfer_desc">Transfer a ticket purchase to another CityPulse account.</p>
       <main className="ticket_transfer">
         <form className="transfer_form" onSubmit={handleSubmit}>
           {error && <p className="auth__form-error" role="alert">{error}</p>}

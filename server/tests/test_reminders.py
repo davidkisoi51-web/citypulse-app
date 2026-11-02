@@ -8,8 +8,6 @@ from models import SavedEvent, User
 
 def test_daily_reminder_command_sends_once_per_user(client, app):
     with app.app_context():
-        user = db.session.get(User, 1)
-        user.is_verified = True
         tomorrow = (datetime.now(ZoneInfo("Africa/Nairobi")).date() + timedelta(days=1)).isoformat()
         saved = SavedEvent(
             plan_id=1,

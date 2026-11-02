@@ -13,9 +13,6 @@ class User(db.Model):
     name = db.Column(db.String(120), nullable=False)
     email = db.Column(db.String(255), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
-    is_verified = db.Column(db.Boolean, nullable=False, default=False)
-    verification_code = db.Column(db.String(5), nullable=True)
-    code_expires_at = db.Column(db.DateTime(timezone=True), nullable=True)
     reset_code = db.Column(db.String(5), nullable=True)
     reset_expires_at = db.Column(db.DateTime(timezone=True), nullable=True)
 

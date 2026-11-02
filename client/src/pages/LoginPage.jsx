@@ -46,7 +46,11 @@ function LoginPage() {
     <AuthLayout
       title="Log in"
       subtitle="Welcome back. Log in to buy tickets."
-      notice={redirect.eventName && `Log in to buy tickets for ${redirect.eventName}.`}
+      notice={
+        redirect.accountCreated
+          ? 'Your account was created. You can now log in.'
+          : redirect.eventName && `Log in to buy tickets for ${redirect.eventName}.`
+      }
       footer={
         <>
         <div>
