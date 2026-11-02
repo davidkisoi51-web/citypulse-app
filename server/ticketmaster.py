@@ -1,4 +1,5 @@
 """Ticketmaster Discovery API client; credentials remain server-side only."""
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timezone
 
 import requests
@@ -6,6 +7,17 @@ from flask import current_app
 
 BASE_URL = "https://app.ticketmaster.com/discovery/v2/events.json"
 REQUEST_TIMEOUT_SECONDS = 15
+
+# Searched when the config doesn't say (matches Config.EVENTS_COUNTRY_CODES' default).
+DEFAULT_COUNTRY_CODES = ["KE", "ZA", "NG"]
+
+# Cities offered in the app's city dropdown, so picking one only asks that city's country.
+# Any other city is searched in every configured country.
+CITY_COUNTRIES = {
+    "nairobi": "KE",
+    "johannesburg": "ZA", "cape town": "ZA", "durban": "ZA", "pretoria": "ZA",
+    "lagos": "NG", "abuja": "NG", "port harcourt": "NG", "ibadan": "NG",
+}
 
 
 class TicketmasterError(Exception):
@@ -41,7 +53,6 @@ def fetch_events(keyword=None, city=None, category=None, start_date=None, end_da
         "apikey": api_key,
         "size": 50,
         "sort": "date,asc",
-        "countryCode": current_app.config.get("EVENTS_COUNTRY_CODE", "KE"),
     }
     if keyword:
         params["keyword"] = keyword.strip()
@@ -57,6 +68,34 @@ def fetch_events(keyword=None, city=None, category=None, start_date=None, end_da
     if end_date:
         params["endDateTime"] = f"{end_date}T23:59:59Z"
 
+    countries = current_app.config.get("EVENTS_COUNTRY_CODES") or DEFAULT_COUNTRY_CODES
+    known = CITY_COUNTRIES.get((city or "").strip().lower())
+    if known:
+        countries = [known]
+
+    # One request per country, side by side; merged and sorted by date.
+    with ThreadPoolExecutor(max_workers=len(countries)) as pool:
+        outcomes = list(pool.map(lambda code: _fetch_country({**params, "countryCode": code}), countries))
+
+    events = [event for outcome in outcomes if isinstance(outcome, list) for event in outcome]
+    failures = [outcome for outcome in outcomes if isinstance(outcome, TicketmasterError)]
+    # Only fail if every country failed; otherwise show what we got.
+    if failures and len(failures) == len(outcomes):
+        raise failures[0]
+    for failure in failures:
+        current_app.logger.warning("Event provider request failed for one country [%s]: %s", failure.code, failure.message)
+    return sorted(events, key=lambda e: (e.get("date") or "9999", e.get("time") or ""))
+
+
+def _fetch_country(params):
+    """Events for one country, or the TicketmasterError explaining why not (runs in a thread)."""
+    try:
+        return _request_events(params)
+    except TicketmasterError as exc:
+        return exc
+
+
+def _request_events(params):
     try:
         response = requests.get(BASE_URL, params=params, timeout=REQUEST_TIMEOUT_SECONDS)
     except requests.Timeout as exc:
