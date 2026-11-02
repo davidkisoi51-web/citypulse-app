@@ -1,5 +1,5 @@
 # server/tests/test_events.py
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 from datetime import datetime, timezone
 import requests
 
@@ -127,3 +127,59 @@ def test_list_events_all_cities_when_city_is_explicitly_empty(client):
         mock_get.return_value.json.return_value = {"_embedded": {"events": []}}
         client.get("/api/events?city=")
         assert "city" not in mock_get.call_args.kwargs["params"]
+
+
+def _event(event_id, city, day):
+    return {
+        "id": event_id,
+        "name": event_id,
+        "dates": {"start": {"localDate": day}},
+        "_embedded": {"venues": [{"name": "Venue", "city": {"name": city}}]},
+    }
+
+
+def test_list_events_all_cities_searches_every_country_and_merges_by_date(client):
+    by_country = {
+        "KE": [_event("ke", "Nairobi", "2026-12-10")],
+        "ZA": [_event("za", "Johannesburg", "2026-12-01")],
+        "NG": [_event("ng", "Lagos", "2026-12-05")],
+    }
+
+    def fake_get(url, params, timeout):
+        response = MagicMock(ok=True, status_code=200)
+        response.json.return_value = {"_embedded": {"events": by_country[params["countryCode"]]}}
+        return response
+
+    with patch("ticketmaster.requests.get", side_effect=fake_get) as mock_get:
+        response = client.get("/api/events?city=")
+
+    assert response.status_code == 200
+    assert [e["id"] for e in response.json["data"]] == ["za", "ng", "ke"]
+    sent = mock_get.call_args_list
+    assert sorted(call.kwargs["params"]["countryCode"] for call in sent) == ["KE", "NG", "ZA"]
+    assert all("city" not in call.kwargs["params"] for call in sent)
+
+
+def test_list_events_known_city_only_asks_its_country(client):
+    with patch("ticketmaster.requests.get") as mock_get:
+        mock_get.return_value.ok = True
+        mock_get.return_value.json.return_value = {}
+        client.get("/api/events?city=Lagos")
+
+    assert mock_get.call_count == 1
+    assert mock_get.call_args.kwargs["params"]["countryCode"] == "NG"
+
+
+def test_list_events_one_country_failing_still_returns_the_others(client):
+    def fake_get(url, params, timeout):
+        if params["countryCode"] == "ZA":
+            raise requests.ConnectionError("down")
+        response = MagicMock(ok=True, status_code=200)
+        response.json.return_value = {"_embedded": {"events": [_event(params["countryCode"], "X", "2026-12-01")]}}
+        return response
+
+    with patch("ticketmaster.requests.get", side_effect=fake_get):
+        response = client.get("/api/events?city=")
+
+    assert response.status_code == 200
+    assert sorted(e["id"] for e in response.json["data"]) == ["KE", "NG"]

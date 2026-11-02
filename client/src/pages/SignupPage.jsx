@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/authContext'
 import { MIN_PASSWORD_LENGTH, validateSignup } from '../auth/authUtils'
-//import { redirectAfterAuth } from '../auth/redirectAfterAuth'
+import { redirectAfterAuth } from '../auth/redirectAfterAuth'
 import AuthLayout from './AuthLayout'
 import FormField from './FormField'
 

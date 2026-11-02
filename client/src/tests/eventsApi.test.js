@@ -122,3 +122,15 @@ test('fallback still applies the user’s filters', async () => {
   const { events } = await fetchEvents({ keyword: 'kering' })
   assert.deepEqual(events.map((e) => e.name), ['Kering'])
 })
+test('fetchEvents sends an empty city for "All cities" so the server searches every country', async () => {
+  let sent
+  globalThis.fetch = async (url) => {
+    sent = new URL(url)
+    return { ok: true, json: async () => ({ data: [] }) }
+  }
+  await fetchEvents({ city: '' })
+  assert.equal(sent.searchParams.has('city'), true)
+  assert.equal(sent.searchParams.get('city'), '')
+  await fetchEvents({})
+  assert.equal(sent.searchParams.has('city'), false)
+})

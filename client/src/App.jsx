@@ -19,6 +19,7 @@ import { useSavedEvents } from './plans/savedEventsContext'
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { isPastEvent } from './utils/pastEvent'
+import { kenyaFirst } from './utils/kenyaFirst'
 import { isRunningInstalled } from './pwa/install'
 import GetAppSection from './components/GetAppSection'
 import useOnlineStatus from './hooks/useOnlineStatus'
@@ -33,8 +34,12 @@ function todayLocal() {
 }
 
 const DEFAULT_CITY = import.meta.env?.VITE_DEFAULT_CITY || 'Nairobi'
-// Always offered in the city dropdown, even if the current feed has none of that city's events.
-const CITY_OPTIONS = ['Nairobi', 'Mombasa', 'Kisumu', 'Nakuru', 'Eldoret', 'Las Vegas', 'San Fransisco', 'Foxborough', 'Brooklyn']
+// The city dropdown: Nairobi (Kenya), plus South Africa and Nigeria, where the API also searches.
+const CITY_OPTIONS = [
+  'Nairobi',
+  'Johannesburg', 'Cape Town', 'Durban', 'Pretoria',
+  'Lagos', 'Abuja', 'Port Harcourt', 'Ibadan',
+]
 
 // Case- and space-insensitive text, so "Music", "music " and "MUSIC" match each other.
 const norm = (value) => (value || '').trim().toLowerCase()
@@ -136,7 +141,7 @@ function App({ view = 'events' }) {
 
 
   const categories = uniqueOptions(allEvents, 'category')
-  const cities = uniqueOptions([...allEvents, ...CITY_OPTIONS.map((c) => ({ city: c }))], 'city')
+  const cities = CITY_OPTIONS
   const resultsRef = useRef(null)
   // Banner: the team's own next upcoming event first; live events only if none of ours are upcoming.
   const nextEvent = getNextEvent(adminEvents) ?? getNextEvent(allEvents)
@@ -173,11 +178,13 @@ function App({ view = 'events' }) {
   const filtering = Boolean(query.trim() || startDate || endDate) || category !== 'all'
   const recommended =
     filtering || apiLoading ? [] : recommendEvents(allEvents, savedEvents, { excludeIds: nextEvent ? [nextEvent.id] : [] })
-  // Landing page ring: the next 18 upcoming events in the chosen city, soonest first. It
-  // ignores the search and filters, which live on the Events page.
-  const ringEvents = sortEvents(
-    allEvents.filter((e) => (!city || norm(e.city) === norm(city)) && !isPastEvent(e)),
-    SORT_OPTIONS.dateNearest,
+  // Landing page ring: 18 upcoming events in the chosen city, Kenyan ones first, each group
+  // soonest first. It ignores the search and filters, which live on the Events page.
+  const ringEvents = kenyaFirst(
+    sortEvents(
+      allEvents.filter((e) => (!city || norm(e.city) === norm(city)) && !isPastEvent(e)),
+      SORT_OPTIONS.dateNearest,
+    ),
   ).slice(0, 18)
 
   if (view === 'home') {
