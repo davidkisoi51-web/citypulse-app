@@ -83,8 +83,11 @@
 }
 
 .back_to_events{
-  display: inline-block;
+  display: inline-flex;
   box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  justify-self: center;
   border-radius: 10px;
   padding-left: 15px;
   margin: 15px;

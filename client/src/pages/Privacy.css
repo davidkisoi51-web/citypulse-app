@@ -1,0 +1,54 @@
+.page{
+    min-height: 100vh;
+    background-image: linear-gradient(200deg, rgba(62, 25, 7, 0.5), rgba(186, 31, 80, 0.5));
+    @media (max-width: 620px){
+        max-width: fit-content;
+    }
+}
+.container_p{
+    display: grid;
+    align-items: center;
+    justify-content: center;
+    justify-self: center;
+    width: 600px;
+    background-image: radial-gradient(ellipse at top, #ae0e0e, transparent), radial-gradient(ellipse at bottom, #2a621a, transparent);
+    padding: 20px;
+    border-radius: 350px;
+
+    @media (max-width: 620px){
+        max-width: fit-content;
+    }
+}
+.privacy-title{
+    font-size: 30px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    justify-self: center;
+    color:rgb(252, 252, 252);
+    text-shadow: 0 0 18px rgba(255, 107, 91, 0.5), 0 0 32px rgba(236, 72, 153, 0.6);
+    position: relative;
+    @media (max-width: 660px){
+        max-width: none;
+    }
+}
+
+.privacy-p{
+    display: flex;
+    color: rgb(244, 158, 158);
+    font-weight: 550;
+    border-radius: 10px;
+    position: relative;
+    align-items: center;
+    justify-content: center;
+    justify-self: center;
+    text-shadow: 0 0 18px rgba(255, 107, 91, 0.5), 0 0 32px rgba(236, 72, 153, 0.6);
+
+
+    @media (max-width: 620px){
+        max-width: none;
+    }
+
+
+}
