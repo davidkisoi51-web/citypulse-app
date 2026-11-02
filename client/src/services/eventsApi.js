@@ -14,7 +14,9 @@ const REQUEST_TIMEOUT_MS = 52000
 export async function fetchEvents({ city, category, startDate, endDate, keyword } = {}) {
   const params = new URLSearchParams()
   if (keyword) params.append('keyword', keyword)
-  if (city) params.append('city', city)
+  // An empty city ("All cities") is still sent, so the server searches every country
+  // instead of falling back to its default city.
+  if (city != null) params.append('city', city)
   if (category) params.append('category', category)
   if (startDate) params.append('startDate', startDate)
   if (endDate) params.append('endDate', endDate)
