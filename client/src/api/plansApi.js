@@ -62,6 +62,7 @@ export function describeError(status, body) {
   if (status === 404 || status === 405) return "This action isn't available on the server yet."
   if (status === 422) return serverMessage || 'Some details are invalid.'
   if (status === 503) return serverMessage || 'The server is not ready yet.'
+  if (code === 'mpesa_not_configured') return "M-PESA payments aren't set up on this server yet."
   if (status >= 500) return 'Something went wrong on the server. Please try again.'
   return serverMessage || `Request failed (${status}).`
 }
