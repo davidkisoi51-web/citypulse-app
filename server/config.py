@@ -29,6 +29,11 @@ class Config:
     # Temporary development-only auth bridge. Disable outside local development.
     #DEV_AUTH_STUB = os.getenv("DEV_AUTH_STUB", "false").lower() == "true"
     DEV_AUTH_USER_ID = int(os.getenv("DEV_AUTH_USER_ID", "1"))
+    ADMIN_EMAILS = {
+        email.strip().lower()
+        for email in os.getenv("ADMIN_EMAILS", "").split(",")
+        if email.strip()
+    }
     TICKETMASTER_API_KEY = os.getenv("TICKETMASTER_API_KEY")
     DEFAULT_EVENT_CITY = os.getenv("DEFAULT_EVENT_CITY", "Nairobi")
     EVENTS_COUNTRY_CODE = os.getenv("EVENTS_COUNTRY_CODE", "KE")

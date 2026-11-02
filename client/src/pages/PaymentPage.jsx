@@ -5,10 +5,7 @@ import { useAuth } from '../auth/authContext'
 import { useAdminEvents } from '../admin/adminEventsContext'
 import {
   MAX_TICKETS,
-  MPESA_NUMBER,
-  MPESA_NUMBER_DISPLAY,
   formatAmount,
-  normalizeMpesaCode,
   ticketOptions,
 } from '../payment/paymentUtils'
 import { downloadPdf, receiptFileName, receiptPdfForPurchase } from '../payment/receipt'
@@ -23,7 +20,7 @@ import {
 import { formatDate } from '../utils/formatEvent'
 import './PaymentPage.css'
 
-// Demo M-PESA checkout for admin events without a ticket link. Any code counts as paid.
+// On-site purchases are recorded only after the backend confirms the STK payment.
 function PaymentPage() {
   const { eventId } = useParams()
   const { user } = useAuth()
@@ -33,8 +30,6 @@ function PaymentPage() {
   const options = event ? ticketOptions(event) : []
   const [optionId, setOptionId] = useState(options[0]?.id)
   const [quantity, setQuantity] = useState(1)
-  const [code, setCode] = useState('')
-  const [codeError, setCodeError] = useState('')
   // The saved purchase once payment is confirmed (drives the success screen and PDF).
   const [purchase, setPurchase] = useState(null)
   // Saving the receipt to the server: in progress, and the error to show if it failed.
@@ -43,7 +38,6 @@ function PaymentPage() {
   // The last completePurchase call, so "Try again" can repeat it after a failed save.
   const lastAttempt = useRef(null)
   const [downloaded, setDownloaded] = useState(false)
-  const [copied, setCopied] = useState(false)
 
     // M-PESA Express (STK push) state
   const [phone, setPhone] = useState('')
@@ -107,9 +101,10 @@ function PaymentPage() {
       quantity,
       unitPrice: option.price,
       currency,
-      method: mpesaCode === 'FREE' ? 'Free' : 'M-PESA',
+      method: mpesaCode === 'FREE' ? 'Free' : 'M-PESA Express (STK Push)',
       mpesaCode: mpesaCode === 'FREE' ? null : mpesaCode,
-      paidTo: mpesaCode === 'FREE' ? null : extra.paidTo || MPESA_NUMBER_DISPLAY,
+      paidTo: mpesaCode === 'FREE' ? null : extra.paidTo || 'M-PESA Express (STK Push)',
+      paymentId: extra.paymentId ?? null,
     }
     setSaving(true)
     setSaveError('')
@@ -228,16 +223,6 @@ function PaymentPage() {
 
   const free = total === 0
 
-  const copyNumber = async () => {
-    try {
-      await navigator.clipboard.writeText(MPESA_NUMBER)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    } catch {
-      // Clipboard blocked: the number is visible to copy by hand.
-    }
-  }
-
   const busy = stkState === 'sending' || stkState === 'waiting' || saving
 
   const handleStkPush = async () => {
@@ -269,14 +254,9 @@ function PaymentPage() {
     if (busy) return
     if (free) {
       completePurchase('FREE')
-      return
+    } else {
+      setStkMessage('Approve the M-PESA prompt on your phone to complete payment.')
     }
-    const cleaned = normalizeMpesaCode(code)
-    if (!cleaned) {
-      setCodeError('Paste the M-PESA code from your confirmation SMS.')
-      return
-    }
-    completePurchase(cleaned)
   }
 
   return page(
@@ -381,53 +361,7 @@ function PaymentPage() {
                   Check your phone and enter your M-PESA PIN to approve {formatAmount(total, currency)}.
                 </p>
               )}
-              <p className="pay__meta pay__or">Or pay manually:</p>
             </div>
-
-
-            <div className="pay__mpesa">
-              <p className="pay__mpesa-title">
-                <span className="pay__mpesa-badge">M-PESA</span> Lipa na M-PESA
-              </p>
-              <ol className="pay__steps">
-                <li>
-                  Open M-PESA and choose <strong>Send Money</strong>.
-                </li>
-                <li>
-                  Send <strong>{formatAmount(total, currency)}</strong> to{' '}
-                  <strong className="pay__number">{MPESA_NUMBER_DISPLAY}</strong>
-                  <button type="button" className="pay__copy" onClick={copyNumber}>
-                    {copied ? 'Copied' : 'Copy'}
-                  </button>
-                </li>
-                <li>Paste the M-PESA code from your confirmation SMS below.</li>
-              </ol>
-            </div>
-
-            <label className="pay__field">
-              <span>M-PESA code</span>
-              <input
-                value={code}
-                onChange={(e) => {
-                  setCode(e.target.value)
-                  setCodeError('')
-                }}
-                placeholder="e.g. SJK4H7QW2P"
-                autoComplete="off"
-                autoCapitalize="characters"
-                aria-invalid={codeError ? true : undefined}
-                aria-describedby={codeError ? 'mpesa-code-error' : undefined}
-              />
-              {codeError && (
-                <span id="mpesa-code-error" className="pay__error">
-                  {codeError}
-                </span>
-              )}
-            </label>
-
-            <button className="pay__primary" type="submit" disabled={busy}>
-              {saving ? 'Saving…' : 'Confirm payment'}
-            </button>
           </>
         )}
       </form>

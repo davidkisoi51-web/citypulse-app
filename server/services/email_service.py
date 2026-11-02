@@ -7,6 +7,7 @@ from datetime import datetime
 
 SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
 SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+SMTP_TIMEOUT_SECONDS = int(os.getenv("SMTP_TIMEOUT_SECONDS", "15"))
 SMTP_USER = os.getenv("SMTP_USER")
 SMTP_PASS = os.getenv("SMTP_PASS")
 FROM_EMAIL = os.getenv("FROM_EMAIL", "CityPulse <noreply@CityPulse.com>")
@@ -77,8 +78,10 @@ def _send_email(to_email, subject, html_body, text_body=None):
         msg.attach(MIMEText(text_body or html_body, "plain"))
         msg.attach(MIMEText(html_body, "html"))
 
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
-            server.starttls()
+        smtp_client = smtplib.SMTP_SSL if SMTP_PORT == 465 else smtplib.SMTP
+        with smtp_client(SMTP_HOST, SMTP_PORT, timeout=SMTP_TIMEOUT_SECONDS) as server:
+            if SMTP_PORT != 465:
+                server.starttls()
             server.login(SMTP_USER, SMTP_PASS)
             server.sendmail(FROM_EMAIL, to_email, msg.as_string())
         print(f"Email sent to {to_email}")

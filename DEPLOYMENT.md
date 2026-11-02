@@ -75,16 +75,19 @@ The API tests create and drop their tables, so use a dedicated disposable test d
 
 1. Push the repaired repository to GitHub.
 2. In Render, choose **New + → Blueprint** and select the repository. Render will read `render.yaml`.
-3. Add `TICKETMASTER_API_KEY` as a secret when prompted. Do not add a `VITE_` prefix to this server-only secret.
+3. Configure `TICKETMASTER_API_KEY`, `ADMIN_EMAILS`, and the SMTP sender credentials (`SMTP_USER`, `SMTP_PASS`, `FROM_EMAIL`) when prompted. Use a provider app password where required. Do not add a `VITE_` prefix to server-only secrets.
 4. Confirm the API service has `DEV_AUTH_STUB=false`, `FLASK_DEBUG=false`, and both generated secret keys.
 5. Confirm the static site's `VITE_API_URL` points to the API's public URL plus `/api` (the blueprint defaults to `https://citypulse-api.onrender.com/api`). If Render gives the services different names/URLs, update this value and redeploy the static site.
 6. Set the API's `CORS_ORIGINS` to the exact public static-site origin, with no trailing slash. If you add a custom domain, include that origin too.
 7. Let the API's pre-deploy command run `flask --app app db upgrade`. Confirm `/api/health` returns HTTP 200 and `{"status":"ok","database":"connected"}`.
 8. Open the frontend URL and test signup, logout/login, event loading, saving an event to a plan, editing a plan, and deleting a saved event.
 
-### Important database migration warning
+### Database migration
 
-The previous migration files had duplicate table-creation steps and referenced a missing revision. This repair replaces that chain with a clean baseline migration for a **new/empty deployment database**. Do not apply this baseline blindly to a database that already contains CityPulse data. Back up an existing database and reconcile its Alembic version/schema before deploying over it.
+The current migration adds the purchase/transfer schema and removes the unintended unique
+constraint on user names. Apply it with `flask --app app db upgrade` before deploying the
+updated API. Back up an existing production database before upgrading, and verify its Alembic
+revision if it was created outside the checked-in migration history.
 
 ### Secrets
 

@@ -1,6 +1,6 @@
 import { test, afterEach } from 'node:test'
 import assert from 'node:assert/strict'
-import { ApiError, addSavedEvent, createPlan, deletePlan, describeError, listPlans, removeSavedEvent, updateSavedEvent } from '../api/plansApi.js'
+import { ApiError, addSavedEvent, authPost, createPlan, deletePlan, describeError, listPlans, removeSavedEvent, updateSavedEvent } from '../api/plansApi.js'
 
 const realFetch = globalThis.fetch
 let calls
@@ -27,6 +27,20 @@ test('createPlan sends JSON with POST', async () => {
   assert.equal(calls[0].options.method, 'POST')
   assert.equal(calls[0].options.headers['Content-Type'], 'application/json')
   assert.deepEqual(JSON.parse(calls[0].options.body), { title: 'Date night' })
+})
+
+test('authPost uses the configured API origin and preserves server error codes', async () => {
+  mockFetch(201, { data: { email: 'new@example.test', verification_sent: false } })
+  const result = await authPost('register', { name: 'New User', email: 'new@example.test' })
+  assert.deepEqual(result, { email: 'new@example.test', verification_sent: false })
+  assert.match(calls[0].url, /\/api\/auth\/register$/)
+  assert.equal(calls[0].options.method, 'POST')
+
+  mockFetch(403, { error: { code: 'email_not_verified', message: 'Please verify your email.' } })
+  await assert.rejects(
+    authPost('login', { email: 'new@example.test', password: 'secret' }),
+    (err) => err.code === 'email_not_verified' && err.status === 403,
+  )
 })
 
 test('204 responses resolve to null', async () => {
@@ -66,4 +80,3 @@ test('describeError covers auth, missing endpoints and server errors', () => {
   assert.equal(describeError(503, { error: { message: 'JWT authentication is not configured yet' } }), 'JWT authentication is not configured yet')
   assert.match(describeError(500, null), /went wrong/)
 })
-

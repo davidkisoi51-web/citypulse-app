@@ -24,7 +24,8 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
-# Edit DATABASE_URL to point at your local PostgreSQL database.
+# Configure DATABASE_URL, SMTP credentials, and ADMIN_EMAILS in .env.
+flask --app app db upgrade
 python seed.py
 python -m pytest -q
 python app.py
@@ -32,6 +33,14 @@ python app.py
 
 The API listens on `http://127.0.0.1:5001`. Health check: `GET /api/health`.
 
-`DEV_AUTH_STUB=true` is only for local development and is not real authentication. Keep it
- disabled in deployed environments and merge the project's verified JWT authentication before
-release.
+Set `ADMIN_EMAILS` to a comma-separated list of administrator email addresses. Admin status
+is included in login and `/api/auth/me` responses and is enforced by admin-only API routes.
+
+Verification and password-reset emails require working SMTP credentials. For local testing,
+`EMAIL_DRY_RUN=true` prints codes to the server console. Failed verification delivery is shown
+in the signup flow and users can request a new code. Use an app password when your email
+provider requires one; do not commit `.env`.
+
+Run database migrations (`flask --app app db upgrade`) on every environment before deploying
+the updated server. `DEV_AUTH_STUB=true` is only for local development tests; keep it disabled
+in deployed environments.

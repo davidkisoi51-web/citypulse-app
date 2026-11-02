@@ -79,6 +79,47 @@ def test_register_rejects_short_password(client):
     assert response.status_code == 422
 
 
+def test_register_allows_duplicate_names_and_reports_email_failure(client, monkeypatch):
+    monkeypatch.setattr(auth_routes, "send_verification_email", lambda *args: False)
+    first = client.post("/api/auth/register", json={
+        "name": "Shared Name",
+        "email": "first-name@example.test",
+        "password": "StrongPass123",
+    })
+    second = client.post("/api/auth/register", json={
+        "name": "Shared Name",
+        "email": "second-name@example.test",
+        "password": "StrongPass123",
+    })
+
+    assert first.status_code == second.status_code == 201
+    assert first.json["data"]["verification_sent"] is False
+    assert "could not be sent" in first.json["data"]["message"]
+
+
+def test_resend_verification_sends_a_fresh_code(client, app, monkeypatch):
+    sent = []
+    monkeypatch.setattr(
+        auth_routes,
+        "send_verification_email",
+        lambda email, code, name: sent.append((email, code, name)) or True,
+    )
+    with app.app_context():
+        create_user(email="resend@example.test", verification_code="11111")
+
+    response = client.post("/api/auth/resend-verification", json={
+        "email": "RESEND@example.test",
+    })
+
+    assert response.status_code == 200
+    assert len(sent) == 1
+    assert sent[0][0] == "resend@example.test"
+    with app.app_context():
+        user = User.query.filter_by(email="resend@example.test").first()
+        assert user.verification_code == sent[0][1]
+        assert user.code_expires_at is not None
+
+
 # --------------------------------------------------
 # EMAIL VERIFICATION
 # --------------------------------------------------
@@ -163,6 +204,7 @@ def test_login_success(client, app):
     assert response.status_code == 200
     assert response.json["data"]["token"]
     assert response.json["data"]["user"]["email"] == "login@example.test"
+    assert response.json["data"]["user"]["isAdmin"] is False
 
 
 def test_login_rejects_wrong_password(client, app):

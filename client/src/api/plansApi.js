@@ -20,6 +20,27 @@ export class ApiError extends Error {
   }
 }
 
+export async function authPost(path, payload) {
+  let response
+  try {
+    response = await fetch(`${API_URL}/auth/${path}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+  } catch {
+    throw new ApiError('Cannot reach CityPulse. Check your connection and try again.', { code: 'network' })
+  }
+  const body = await response.json().catch(() => ({}))
+  if (!response.ok) {
+    throw new ApiError(
+      body?.error?.message || body?.message || 'Authentication failed. Please try again.',
+      { status: response.status, code: body?.error?.code ?? 'http_error' },
+    )
+  }
+  return body?.data ?? body
+}
+
 function authHeader() {
   try {
     const token = globalThis.localStorage?.getItem(TOKEN_KEY)

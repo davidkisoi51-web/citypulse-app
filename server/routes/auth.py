@@ -2,20 +2,28 @@
 import secrets
 from datetime import timedelta, datetime, timezone
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, current_app, g, jsonify, request
 from services.auth_rate_limiter import check_rate_limit, RateLimitBackendError
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 
 import datetime
 
 from extensions import db
-from models import User, Tickets, TicketsSchema, Transfer, TransferSchema
+from models import User, Tickets, Transfer
+from sqlalchemy.exc import SQLAlchemyError
+from auth import require_user
 
 from services.email_service import send_verification_email, send_welcome_email
 auth_bp = Blueprint("auth", __name__)
 
 def public_user(user):
-    return {"id": user.id, "name": user.name, "email": user.email}
+    admin_emails = current_app.config.get("ADMIN_EMAILS", set())
+    return {
+        "id": user.id,
+        "name": user.name,
+        "email": user.email,
+        "isAdmin": user.email.lower() in admin_emails,
+    }
 
 
 def generate_code():
@@ -79,17 +87,63 @@ def register():
     user.is_verified = False
     db.session.add(user)
     db.session.commit()
+    verification_sent = False
     try:
         sent = send_verification_email(email, code, email.split('@')[0])
         if not sent:
-            print(f"[VERIFICATION EMAIL] Delivery failed for {email}")
-    except Exception as e:
-        print(f"[VERIFICATION EMAIL] Delivery error for {email}: {e}")
+            current_app.logger.error("Verification email delivery failed for user id %s", user.id)
+        verification_sent = bool(sent)
+    except Exception:
+        current_app.logger.exception("Verification email delivery failed for user id %s", user.id)
     return jsonify(data={
-        "message": "Verification code sent to email", 
+        "message": (
+            "Verification code sent to email."
+            if verification_sent
+            else "Your account was created, but the verification email could not be sent. Try resending the code."
+        ),
         "need_verification": True,
-        "email": email
+        "email": email,
+        "verification_sent": verification_sent,
     }), 201
+
+
+@auth_bp.post("/resend-verification")
+def resend_verification():
+    data = request.get_json(silent=True)
+    raw_email = data.get("email") if isinstance(data, dict) else None
+    email = raw_email.strip().lower() if isinstance(raw_email, str) else ""
+    if not email:
+        return jsonify(error={
+            "code": "validation_error",
+            "message": "Email is required.",
+        }), 422
+
+    limited = enforce_rate_limit("resend_verification", email, 3, 3600)
+    if limited is not None:
+        return limited
+
+    user = User.query.filter_by(email=email).first()
+    if user is None or user.is_verified:
+        return jsonify(data={
+            "message": "If the account needs verification, a new code will be sent."
+        }), 200
+
+    code = generate_code()
+    user.verification_code = code
+    user.code_expires_at = datetime.datetime.now(timezone.utc) + timedelta(minutes=5)
+    db.session.commit()
+    try:
+        sent = send_verification_email(user.email, code, user.name)
+    except Exception:
+        current_app.logger.exception("Verification email delivery failed")
+        sent = False
+    if not sent:
+        current_app.logger.error("Verification email delivery failed for user id %s", user.id)
+        return jsonify(error={
+            "code": "email_delivery_failed",
+            "message": "We couldn't send the verification email. Please try again later.",
+        }), 503
+    return jsonify(data={"message": "A new verification code was sent."}), 200
 
 @auth_bp.post("/verify-email")
 def verify_email():
@@ -110,7 +164,7 @@ def verify_email():
     if user is None:
         return jsonify(error={"code": "not_found", "message": "User not found."}), 404
     if user.is_verified:
-        return jsonify(error={"message": "Account already verified. please log in"}), 400
+        return jsonify(data={"message": "Account already verified. Please log in."}), 200
     if user.verification_code != code:
         return jsonify(error={"code": "invalid_code", "message": "Invalid verification code."}), 400
     if code_is_expired(user.code_expires_at):
@@ -126,7 +180,7 @@ def verify_email():
             print(f"[WELCOME EMAIL] Delivery failed for {email}")
     except Exception as e:
         print(f"[WELCOME EMAIL] Delivery error for {email}: {e}")
-    return jsonify(message="Email verified successfully"), 200
+    return jsonify(data={"message": "Email verified successfully."}), 200
 
 @auth_bp.post("/login") 
 def login():
@@ -321,60 +375,66 @@ def reset_password():
 
 
 @auth_bp.post("/transfer")
+@require_user
 def transfer_tickets():
-
-    data = request.get_json() or {}
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify(error={"code": "validation_error", "message": "A JSON object is required."}), 400
     transferee_email = data.get("email")
-    user_email = 'transfer@gmail.com' #current user variable
-    ticket = data["ticket"]
-    user_search = User.query.filter_by(email=transferee_email).first()
-    if user_search is None:
-        return {"error": "no user registered under this email"}
-    
-    transfer = Transfer(user_email = user_email, transferee_email = transferee_email, ticket = ticket)
+    ticket_id = data.get("ticketId")
+    if not isinstance(transferee_email, str) or not transferee_email.strip():
+        return jsonify(error={"code": "validation_error", "message": "Recipient email is required."}), 422
+    if isinstance(ticket_id, bool) or not isinstance(ticket_id, int) or ticket_id < 1:
+        return jsonify(error={"code": "validation_error", "message": "A valid ticket purchase is required."}), 422
+
+    sender = g.current_user
+    recipient = User.query.filter_by(email=transferee_email.strip().lower()).first()
+    if recipient is None or not recipient.is_verified:
+        return jsonify(error={"code": "recipient_not_found", "message": "No verified account exists for that email."}), 404
+    if recipient.id == sender.id:
+        return jsonify(error={"code": "invalid_recipient", "message": "You cannot transfer a ticket to yourself."}), 422
+    ticket = Tickets.query.filter_by(id=ticket_id, user_id=sender.id).first()
+    if ticket is None:
+        return jsonify(error={"code": "not_found", "message": "Ticket purchase not found."}), 404
+    if not ticket.transferable:
+        return jsonify(error={"code": "not_transferable", "message": "This ticket purchase cannot be transferred."}), 409
+
+    transfer = Transfer(
+        user_email=sender.email,
+        transferee_email=recipient.email,
+        ticket=str(ticket.id),
+    )
+    ticket.user_id = recipient.id
     db.session.add(transfer)
-    db.session.commit()
-
-    new_transfer = TransferSchema().dump(transfer)
-
-    output = {"data": new_transfer}
-
-    if output["data"] == [] : 
-        return {"error": "unable to transfer"}
-    
-    return output
+    try:
+        db.session.commit()
+    except SQLAlchemyError:
+        db.session.rollback()
+        current_app.logger.exception("Ticket transfer failed")
+        return jsonify(error={"code": "transfer_failed", "message": "Ticket transfer failed. Please try again."}), 500
+    return jsonify(data={
+        "ticketId": ticket.id,
+        "eventName": ticket.event_name,
+        "transfereeEmail": recipient.email,
+    }), 200
 
 
 @auth_bp.post("/tickets")
-#@jwt_required()
+@require_user
 def create_ticket():
-    
-    user_identity = 1
-    data = request.get_json() or {}
-    event_id = data.get("eventId")
-    event_name = data["eventName"]
-    event_date = data["eventDate"]
-    event_time = data.get("eventTime")
-    event_venue = data["eventVenue"]
-    event_city = data["eventCity"]
-    ticket_type = data["ticketType"]
-    quantity = data["quantity"]
-    unit_price = data["unitPrice"]
-    transferable = True
+    from services.purchases import create_purchase, PurchaseValidationError
 
-    if not event_id or not isinstance(event_time,str):
-        return {"key_error_msg": "please include event_id and/or event_time"}
-
-    ticket = Tickets(user_id = user_identity, event_id = event_id, paid_at = datetime.datetime.now(), event_name = event_name, event_date = event_date, event_time = event_time, event_venue = event_venue ,event_city = event_city, ticket_type = ticket_type, price = unit_price, no_of_tickets = quantity, transferable = transferable)
-    db.session.add(ticket)
-    db.session.commit()
-
-    new_ticket = TicketsSchema().dump(ticket)
-
-    output = {
-        "msg": new_ticket
-    }
-    return jsonify(output)
+    try:
+        ticket = create_purchase(request.get_json(silent=True), g.current_user.id)
+    except PurchaseValidationError as exc:
+        return jsonify(error={"code": exc.code, "message": str(exc)}), exc.status_code
+    except SQLAlchemyError:
+        current_app.logger.exception("Purchase could not be saved")
+        return jsonify(error={
+            "code": "purchase_save_failed",
+            "message": "Your purchase could not be saved. Please try again.",
+        }), 500
+    return jsonify(data=ticket.purchase_dict()), 201
 
 
 @auth_bp.get("/me")

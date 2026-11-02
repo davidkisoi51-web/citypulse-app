@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { AuthContext } from './authContext'
-import { API_URL, SESSION_EXPIRED, TOKEN_KEY } from '../api/plansApi'
+import { API_URL, authPost, SESSION_EXPIRED, TOKEN_KEY } from '../api/plansApi'
 
 const SESSION_KEY = 'citypulse.session'
 
@@ -43,21 +43,7 @@ function clearSession() {
 }
 
 async function authRequest(path, payload) {
-  let response
-  try {
-    response = await fetch(`${API_URL}/auth/${path}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    })
-  } catch {
-    throw new Error('Cannot reach CityPulse. Check your connection and try again.')
-  }
-  const body = await response.json().catch(() => ({}))
-  if (!response.ok) {
-    throw new Error(body?.error?.message || body?.message || 'Authentication failed. Please try again.')
-  }
-  const result = body?.data ?? body
+  const result = await authPost(path, payload)
   if (!result?.token || !result?.user) throw new Error('The server returned an invalid authentication response.')
   return saveSession(result.user, result.token)
 }
@@ -105,21 +91,11 @@ export const AuthProvider = ({ children }) => {
   }, [])
 
   const signup = useCallback(async ({ name, email, password }) => {
-    const res = await fetch(`${API_URL}/auth/register`, {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({name: name.trim(), email:email.trim().toLowerCase(), password})
+    return authPost('register', {
+      name: name.trim(),
+      email: email.trim().toLowerCase(),
+      password,
     })
-    const json = await res.json()
-    console.log("REGISTER:", json, "STATUS:", res.status)
-
-    if (!res.ok){
-      throw new Error(json.error?.message || json.error || json.message|| "Signup failed")
-    }
-    //const session = await authRequest('register', { name: name.trim(), email: email.trim().toLowerCase(), password })
-    //setUser(session)
-    //return session
-    return json.data
   }, [])
 
   const logout = useCallback(() => {
