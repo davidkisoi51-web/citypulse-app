@@ -15,7 +15,6 @@ function LoginPage() {
   const [values, setValues] = useState({ email: '', password: '' })
   const [errors, setErrors] = useState({})
   const [formError, setFormError] = useState('')
-  const [verificationRequired, setVerificationRequired] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
   // Already logged in (e.g. opened /login directly): nothing to do here.
@@ -29,7 +28,6 @@ function LoginPage() {
     const found = validateLogin(values)
     setErrors(found)
     setFormError('')
-    setVerificationRequired(false)
     if (Object.keys(found).length) return
 
     setSubmitting(true)
@@ -40,7 +38,6 @@ function LoginPage() {
       redirectAfterAuth(navigate, redirect)
     } catch (err) {
       setFormError(err.message)
-      setVerificationRequired(err.code === 'email_not_verified')
       setSubmitting(false)
     }
   }
@@ -50,8 +47,8 @@ function LoginPage() {
       title="Log in"
       subtitle="Welcome back. Log in to buy tickets."
       notice={
-        redirect.verified
-          ? 'Your email is verified. You can now log in.'
+        redirect.accountCreated
+          ? 'Your account was created. You can now log in.'
           : redirect.eventName && `Log in to buy tickets for ${redirect.eventName}.`
       }
       footer={
@@ -74,13 +71,6 @@ function LoginPage() {
         {formError && (
           <p className="auth__form-error" role="alert">
             {formError}
-          </p>
-        )}
-        {verificationRequired && (
-          <p className="auth__notice">
-            <Link to={`/verify-email?email=${encodeURIComponent(values.email.trim().toLowerCase())}`}>
-              Verify your email address
-            </Link>
           </p>
         )}
         <FormField

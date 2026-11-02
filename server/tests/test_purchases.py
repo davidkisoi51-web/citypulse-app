@@ -126,7 +126,6 @@ def test_admin_purchase_history_is_restricted(client, app):
             name="Admin User",
             email="admin@example.test",
             password_hash="",
-            is_verified=True,
         )
         admin.set_password("StrongPass123")
         db.session.add(admin)
@@ -138,7 +137,7 @@ def test_admin_purchase_history_is_restricted(client, app):
     assert isinstance(allowed.json["data"], list)
 
 
-def test_transfer_moves_owned_purchase_to_verified_recipient(client, app):
+def test_transfer_moves_owned_purchase_to_existing_recipient(client, app):
     purchase = client.post(
         "/api/purchases",
         json=purchase_payload(),
@@ -149,7 +148,6 @@ def test_transfer_moves_owned_purchase_to_verified_recipient(client, app):
             name="Recipient User",
             email="recipient@example.test",
             password_hash="",
-            is_verified=True,
         )
         db.session.add(recipient)
         db.session.commit()

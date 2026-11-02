@@ -31,11 +31,10 @@ function SignupPage() {
     
     setSubmitting(true)
     try {
-      const result = await signup(values)
-      const emailToVerify = result?.email || values.email
-      navigate(`/verify-email?email=${encodeURIComponent(emailToVerify)}`, {
+      await signup(values)
+      navigate('/login', {
         replace: true,
-        state: { verificationSent: result?.verification_sent !== false },
+        state: { accountCreated: true },
       })
     } catch (err) {
       setFormError(err.message || "Signup Failed")

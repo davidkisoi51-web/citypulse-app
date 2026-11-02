@@ -36,10 +36,10 @@ The API listens on `http://127.0.0.1:5001`. Health check: `GET /api/health`.
 Set `ADMIN_EMAILS` to a comma-separated list of administrator email addresses. Admin status
 is included in login and `/api/auth/me` responses and is enforced by admin-only API routes.
 
-Verification and password-reset emails require working SMTP credentials. For local testing,
-`EMAIL_DRY_RUN=true` prints codes to the server console. Failed verification delivery is shown
-in the signup flow and users can request a new code. Use an app password when your email
-provider requires one; do not commit `.env`.
+Signup and login do not require email verification. Password-reset and event-reminder emails
+require working SMTP credentials. For local testing, `EMAIL_DRY_RUN=true` prints email
+contents to the server console. Use an app password when your email provider requires one;
+do not commit `.env`.
 
 Run database migrations (`flask --app app db upgrade`) on every environment before deploying
 the updated server. `DEV_AUTH_STUB=true` is only for local development tests; keep it disabled

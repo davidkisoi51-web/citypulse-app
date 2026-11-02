@@ -30,16 +30,16 @@ test('createPlan sends JSON with POST', async () => {
 })
 
 test('authPost uses the configured API origin and preserves server error codes', async () => {
-  mockFetch(201, { data: { email: 'new@example.test', verification_sent: false } })
+  mockFetch(201, { data: { email: 'new@example.test', message: 'Account created successfully.' } })
   const result = await authPost('register', { name: 'New User', email: 'new@example.test' })
-  assert.deepEqual(result, { email: 'new@example.test', verification_sent: false })
+  assert.deepEqual(result, { email: 'new@example.test', message: 'Account created successfully.' })
   assert.match(calls[0].url, /\/api\/auth\/register$/)
   assert.equal(calls[0].options.method, 'POST')
 
-  mockFetch(403, { error: { code: 'email_not_verified', message: 'Please verify your email.' } })
+  mockFetch(401, { error: { code: 'unauthorized', message: 'Invalid email or password.' } })
   await assert.rejects(
     authPost('login', { email: 'new@example.test', password: 'secret' }),
-    (err) => err.code === 'email_not_verified' && err.status === 403,
+    (err) => err.code === 'unauthorized' && err.status === 401,
   )
 })
 
