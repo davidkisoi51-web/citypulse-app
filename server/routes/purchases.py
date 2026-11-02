@@ -5,6 +5,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from auth import require_user
 from models import Tickets
 from services.purchases import PurchaseValidationError, create_purchase
+from services.roles import is_admin
 
 purchases_bp = Blueprint("purchases", __name__)
 
@@ -39,7 +40,7 @@ def list_my_purchases():
 @purchases_bp.get("")
 @require_user
 def list_all_purchases():
-    if g.current_user.email.lower() not in current_app.config.get("ADMIN_EMAILS", set()):
+    if not is_admin(g.current_user.email):
         return jsonify(error={
             "code": "forbidden",
             "message": "Admin access is required.",

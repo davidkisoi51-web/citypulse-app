@@ -168,3 +168,17 @@ def test_transfer_moves_owned_purchase_to_verified_recipient(client, app):
         transfer = Transfer.query.one()
         assert ticket.user_id == recipient_id
         assert transfer.ticket == str(ticket.id)
+
+
+def test_any_moringa_student_email_is_an_admin(app):
+    from services.roles import is_admin
+
+    with app.app_context():
+        app.config["ADMIN_EMAILS"] = {"listed@example.test"}
+        app.config["ADMIN_DOMAINS"] = {"student.moringaschool.com"}
+        assert is_admin("Someone@Student.MoringaSchool.com")
+        assert is_admin("listed@example.test")
+        assert not is_admin("someone@moringaschool.com")
+        assert not is_admin("someone@student.moringaschool.com.evil.test")
+        assert not is_admin("student.moringaschool.com")
+        assert not is_admin(None)
