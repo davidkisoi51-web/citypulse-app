@@ -28,7 +28,6 @@ import Privacy from './pages/Privacy.jsx'
 import Terms from './pages/Terms.jsx'
 import Cookies from './pages/Cookies.jsx'
 import TransferTickets from './components/TransferTicket.jsx'
-import VerifyEmailPage from './pages/VerifyEmailPage.jsx'
 import DownloadPage from './pages/DownloadPage.jsx'
 
 
@@ -47,7 +46,6 @@ createRoot(document.getElementById('root')).render(
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/verify-code" element={<VerifyCode/>}/>
-          <Route path="/verify-email" element={<VerifyEmailPage/>}/>
           <Route path="/reset-password" element={<NewPassword />} />
           <Route path="/reset-success" element={<ResetSuccess/>}/>
           <Route path="/admin" element={<AdminLayout />}>
