@@ -36,7 +36,10 @@ class Config:
     }
     TICKETMASTER_API_KEY = os.getenv("TICKETMASTER_API_KEY")
     DEFAULT_EVENT_CITY = os.getenv("DEFAULT_EVENT_CITY", "Nairobi")
-    EVENTS_COUNTRY_CODE = os.getenv("EVENTS_COUNTRY_CODE", "KE")
+    # Countries searched for events (Ticketmaster takes one per request, so each is asked in turn).
+    EVENTS_COUNTRY_CODES = [code.strip().upper() for code in os.getenv(
+        "EVENTS_COUNTRY_CODES", "KE,ZA,NG"
+    ).split(",") if code.strip()]
     MPESA_CONSUMER_KEY = os.getenv("MPESA_CONSUMER_KEY")
     MPESA_CONSUMER_SECRET = os.getenv("MPESA_CONSUMER_SECRET")
     MPESA_SHORTCODE = os.getenv("MPESA_SHORTCODE", "174379")

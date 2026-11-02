@@ -33,8 +33,12 @@ function todayLocal() {
 }
 
 const DEFAULT_CITY = import.meta.env?.VITE_DEFAULT_CITY || 'Nairobi'
-// Always offered in the city dropdown, even if the current feed has none of that city's events.
-const CITY_OPTIONS = ['Nairobi', 'Mombasa', 'Kisumu', 'Nakuru', 'Eldoret', 'Las Vegas', 'San Fransisco', 'Foxborough', 'Brooklyn']
+// The city dropdown: Nairobi (Kenya), plus South Africa and Nigeria, where the API also searches.
+const CITY_OPTIONS = [
+  'Nairobi',
+  'Johannesburg', 'Cape Town', 'Durban', 'Pretoria',
+  'Lagos', 'Abuja', 'Port Harcourt', 'Ibadan',
+]
 
 // Case- and space-insensitive text, so "Music", "music " and "MUSIC" match each other.
 const norm = (value) => (value || '').trim().toLowerCase()
@@ -136,7 +140,7 @@ function App({ view = 'events' }) {
 
 
   const categories = uniqueOptions(allEvents, 'category')
-  const cities = uniqueOptions([...allEvents, ...CITY_OPTIONS.map((c) => ({ city: c }))], 'city')
+  const cities = CITY_OPTIONS
   const resultsRef = useRef(null)
   // Banner: the team's own next upcoming event first; live events only if none of ours are upcoming.
   const nextEvent = getNextEvent(adminEvents) ?? getNextEvent(allEvents)
