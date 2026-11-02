@@ -29,9 +29,17 @@ class Config:
     # Temporary development-only auth bridge. Disable outside local development.
     #DEV_AUTH_STUB = os.getenv("DEV_AUTH_STUB", "false").lower() == "true"
     DEV_AUTH_USER_ID = int(os.getenv("DEV_AUTH_USER_ID", "1"))
+    # Team accounts that can open the admin portal. Set ADMIN_EMAILS to override.
     ADMIN_EMAILS = {
         email.strip().lower()
-        for email in os.getenv("ADMIN_EMAILS", "").split(",")
+        for email in (os.getenv("ADMIN_EMAILS") or ",".join([
+            "heidi.temba@student.moringaschool.com",
+            "kisoi.mbithuka@student.moringaschool.com",
+            "stephen.njenga1@student.moringaschool.com",
+            "karimi.moreen@student.moringaschool.com",
+            "amina.masera@student.moringaschool.com",
+            "catherine.njeri1@student.moringaschool.com",
+        ])).split(",")
         if email.strip()
     }
     TICKETMASTER_API_KEY = os.getenv("TICKETMASTER_API_KEY")
