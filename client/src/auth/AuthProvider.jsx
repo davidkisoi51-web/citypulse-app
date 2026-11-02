@@ -91,12 +91,12 @@ export const AuthProvider = ({ children }) => {
   }, [])
 
   // No email verification: creating an account logs the user straight in.
+  // No email verification: create the account, then log in with the same details. (The
+  // server's register reply doesn't include a login token, so log in separately.)
   const signup = useCallback(async ({ name, email, password }) => {
-    const session = await authRequest('register', {
-      name: name.trim(),
-      email: email.trim().toLowerCase(),
-      password,
-    })
+    const cleanEmail = email.trim().toLowerCase()
+    await authPost('register', { name: name.trim(), email: cleanEmail, password })
+    const session = await authRequest('login', { email: cleanEmail, password })
     setUser(session)
     setCheckedId(session.id)
     return session
